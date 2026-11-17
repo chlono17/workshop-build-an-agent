@@ -8,16 +8,24 @@ from pathlib import Path
 from typing import Literal
 
 from langchain_core.tools import tool
-from tavily import AsyncTavilyClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from workshop_support import load_secrets
+from workshop_support import get_search_backend, load_secrets
 from workshop_support.resilience import resilient_tool
 
 load_secrets()
 _LOGGER = logging.getLogger(__name__)
 
-tavily_client = AsyncTavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+# Local-first fork: WORKSHOP_SEARCH=local (default) searches the bundled documents in
+# data/it-knowledge-base with no key and no internet. WORKSHOP_SEARCH=tavily restores
+# the original web search and needs TAVILY_API_KEY.
+SEARCH_BACKEND = get_search_backend()
+if SEARCH_BACKEND == "tavily":
+    from tavily import AsyncTavilyClient
+
+    tavily_client = AsyncTavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+else:
+    tavily_client = None
 INCLUDE_RAW_CONTENT = False
 MAX_TOKENS_PER_SOURCE = 1000
 MAX_RESULTS = 2
@@ -132,6 +140,36 @@ async def search_tavily(
     _LOGGER.debug("Search results: %s", formatted_search_docs)
     return formatted_search_docs
 
+
+@tool("search_tavily", parse_docstring=True)
+async def search_local(
+    queries: list[str],
+    topic: Literal["general", "news", "finance"] = "general",
+) -> str:
+    """Search the company knowledge base (local documents, no internet).
+
+    Args:
+        queries: List of queries to search.
+        topic: Ignored by the local search; kept so prompts written for web search still work.
+
+    Returns:
+        A string of the search results.
+    """
+    from workshop_support.local_search import search
+
+    _LOGGER.info("Searching the local knowledge base")
+    search_docs = [search(query, max_results=MAX_RESULTS) for query in queries]
+    return _deduplicate_and_format_sources(
+        search_docs,
+        max_tokens_per_source=MAX_TOKENS_PER_SOURCE,
+        include_raw_content=True,  # local documents are short; give the agent the full text
+    )
+
+
+# The tool keeps the name `search_tavily` so the notebooks, prompts and answer keys
+# that import it keep working with either backend.
+if SEARCH_BACKEND == "local":
+    search_tavily = search_local
 
 # Retry a transient network failure, then report it to the agent as the tool
 # result instead of ending the run.

@@ -1,10 +1,92 @@
-services: {}
+# Local-first fork: every model the workshop calls runs on this DGX Spark.
+#
+# Start from AI Workbench: Environment -> Compose -> profile "local-models" -> Start.
+# The chat model itself is NOT started here: NVIDIA Sync's Model Launcher runs it
+# (Qwen3.8 27B NVFP4). Set the Launcher's Network access to LAN and put its API key
+# in secrets.env as SPARK_LLM_API_KEY so the gateway can reach it.
+#
+#   project container --NVIDIA_BASE_URL--> local-gateway:8000
+#        local-gateway --chat--> host.docker.internal:18765 (Model Launcher)
+#                      --embeddings--> local-embed:8000
+#                      --ranking--> local-rerank:8000
+#
+# The image is the vLLM build Model Launcher already pulled (pinned by digest),
+# so nothing new is downloaded except the two small models below.
+
+x-spark-vllm: &spark-vllm
+  image: eugr/spark-vllm@sha256:d8686cc0da9de31df2df477cebbb3f7f473ac771c8be1c0774f94e477d35220b
+  profiles: ["local-models"]
+  restart: unless-stopped
+  environment:
+    HF_HOME: /hf-cache
+  volumes:
+    - hf-cache:/hf-cache
+  networks:
+    - workbench
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+services:
+  local-embed:
+    <<: *spark-vllm
+    entrypoint: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+    # 0.04 of 128 GB is about 5 GB. The 27B chat model already holds most of the memory.
+    command: >-
+      --model Qwen/Qwen3-Embedding-0.6B --runner pooling --convert embed
+      --host 0.0.0.0 --port 8000 --max-model-len 8192 --gpu-memory-utilization 0.04
+    networks:
+      workbench:
+        aliases: [local-embed]
+
+  local-rerank:
+    <<: *spark-vllm
+    entrypoint: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+    command: >-
+      --model BAAI/bge-reranker-v2-m3 --runner pooling
+      --host 0.0.0.0 --port 8000 --max-model-len 8192 --gpu-memory-utilization 0.04
+    networks:
+      workbench:
+        aliases: [local-rerank]
+
+  local-gateway:
+    image: eugr/spark-vllm@sha256:d8686cc0da9de31df2df477cebbb3f7f473ac771c8be1c0774f94e477d35220b
+    profiles: ["local-models"]
+    restart: unless-stopped
+    entrypoint: ["python3", "/gateway/gateway.py"]
+    env_file:
+      - path: ./secrets.env
+        required: false
+    environment:
+      CHAT_URL: http://host.docker.internal:18765/v1
+      EMBED_URL: http://local-embed:8000/v1
+      RERANK_URL: http://local-rerank:8000/v1
+      PORT: "8000"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./local-models:/gateway:ro
+    networks:
+      workbench:
+        aliases: [local-gateway]
+    depends_on:
+      - local-embed
+      - local-rerank
 
 volumes:
   app-data: {}
   db-data: {}
   nim-cache: {}
+  hf-cache: {}
 
 networks:
   devx:
     driver: bridge
+  # The network AI Workbench puts the project container on, so it can reach the
+  # services above by name (local-gateway, local-embed, local-rerank).
+  workbench:
+    external: true

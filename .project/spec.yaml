@@ -75,7 +75,7 @@ environment:
         package_manager_environment:
             name: ""
             target: ""
-    compose_file_path: ""
+    compose_file_path: compose.yaml
 execution:
     apps:
         - name: VS Code

@@ -25,7 +25,7 @@ import urllib.request
 from dotenv import dotenv_values
 from packaging.version import InvalidVersion, Version
 
-from . import PROJECT_ROOT, get_model
+from . import LOCAL_KEY_PLACEHOLDER, PROJECT_ROOT, get_base_url, get_model, get_search_backend, is_local
 
 STATIC = Path(__file__).with_name("static")
 THEME = PROJECT_ROOT / ".devx/_static"
@@ -66,8 +66,12 @@ def row(label, status, detail, **extra):
 def credentials():
     values = dotenv_values(PROJECT_ROOT / "secrets.env")
     # A blank saved field clears an inherited key as well.
-    return {key: (values.get(key) if key in values else os.getenv(key)) or ""
+    keys = {key: (values.get(key) if key in values else os.getenv(key)) or ""
             for key in ("NVIDIA_API_KEY", "TAVILY_API_KEY", "LANGSMITH_API_KEY")}
+    if is_local() and not keys["NVIDIA_API_KEY"]:
+        # Local-first fork: the local gateway does not need an NVIDIA key.
+        keys["NVIDIA_API_KEY"] = LOCAL_KEY_PLACEHOLDER
+    return keys
 
 
 def request_json(url, *, data=None, key=None, timeout=3):
@@ -232,7 +236,7 @@ def check_endpoint(role, key):
     common = {"role": role, "model": model, "modules": MODEL_SETTINGS[role]["modules"]}
     if not key:
         return row(label, "missing", "Add your NVIDIA key in Secrets Manager.", **common)
-    base = "https://integrate.api.nvidia.com/v1"
+    base = get_base_url()  # local gateway or NVIDIA's API Catalog
     try:
         if role in ("chat", "fast_chat"):
             data = request_json(base + "/chat/completions", key=key, timeout=45, data={
@@ -295,6 +299,15 @@ def check_endpoint(role, key):
 
 
 def check_search(key):
+    if get_search_backend() == "local":
+        try:
+            from .local_search import search
+            hits = search("reset password", max_results=1)["results"]
+            if not hits:
+                raise ValueError("No documents")
+            return row("Search", "pass", f"Local knowledge base search returned \"{hits[0]['title']}\".")
+        except (OSError, ValueError, KeyError):
+            return row("Search", "fail", "The local knowledge base in data/it-knowledge-base could not be searched.")
     if not key:
         return row("Web search", "missing", "Add your Tavily key for the web search exercises.")
     try:
@@ -333,8 +346,8 @@ class HealthState:
         key_rows = [row(label, "pass" if keys[key] else "missing" if required else "idle",
                         "Saved. Endpoint checks confirm it works." if keys[key] else detail)
                     for key, label, required, detail in [
-                        ("NVIDIA_API_KEY", "NVIDIA", True, "Required for hosted models."),
-                        ("TAVILY_API_KEY", "Tavily", True, "Needed for web search exercises."),
+                        ("NVIDIA_API_KEY", "NVIDIA", not is_local(), "Required for hosted models."),
+                        ("TAVILY_API_KEY", "Tavily", get_search_backend() == "tavily", "Needed only when WORKSHOP_SEARCH=tavily."),
                         ("LANGSMITH_API_KEY", "LangSmith", False, "Optional tracing. The workshop works without it.")]]
         services = [
             local_service("RAG agent", 2024, "/ok", lambda r: r.get("ok") is True, [2, 3]),
@@ -347,7 +360,8 @@ class HealthState:
             relevant = [check for check in endpoints if check["role"] in roles]
             if any(c["status"] == "fail" for c in environment[:2]) or any(c["status"] in ("fail", "missing") for c in relevant):
                 status, detail = "fail", "Resolve the setup or endpoint checks below."
-            elif needs_search and (not keys["TAVILY_API_KEY"] or search["status"] == "fail"):
+            elif needs_search and ((get_search_backend() == "tavily" and not keys["TAVILY_API_KEY"])
+                                   or search["status"] == "fail"):
                 status, detail = "fail", "Check web search before its exercises."
             elif any(c["status"] == "unknown" for c in relevant) or (needs_search and search["status"] == "unknown"):
                 status, detail = "unknown", "Run endpoint checks before you start."

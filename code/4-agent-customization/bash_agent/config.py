@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from workshop_support import get_model, load_secrets
+from workshop_support import get_api_key, get_base_url, get_model, load_secrets
 
 load_secrets()
 
@@ -24,9 +24,9 @@ class Config:
     # API-based LLM configuration (for base agent)
     # -------------------------------------
 
-    llm_base_url: str = "https://integrate.api.nvidia.com/v1"
+    llm_base_url: str = field(default_factory=get_base_url)  # local gateway by default
     llm_model_name: str = field(default_factory=lambda: get_model("fast_chat"))
-    llm_api_key: str = field(default_factory=lambda: os.environ.get("NVIDIA_API_KEY", ""))
+    llm_api_key: str = field(default_factory=get_api_key)
     
     # Sampling parameters (reduced temperature for deterministic outputs)
     llm_temperature: float = 0.1
