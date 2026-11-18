@@ -84,3 +84,13 @@ def test_local_mcp_port_does_not_collide_with_other_module_services(ws):
     # 8000: Module 5 backend, 8001: Module 4 reward server, 2024: langgraph dev.
     assert ws.LOCAL_MCP_PORT not in (8000, 8001, 2024)
     assert ws.LOCAL_MCP_URL == f"http://localhost:{ws.LOCAL_MCP_PORT}/mcp/"
+
+
+def test_search_results_tool_mimics_tavily_search_results():
+    tool = local_search.make_search_results_tool(max_results=2)
+    assert tool.name == "tavily_search_results_json"
+    hits = tool.invoke({"query": "connect to the VPN"})
+    assert 1 <= len(hits) <= 2
+    assert set(hits[0]) == {"title", "url", "content", "score"}
+    assert hits[0]["url"].endswith("vpn.md")
+    assert tool.invoke({"query": "zzzqqq"}) == []

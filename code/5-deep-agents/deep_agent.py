@@ -37,8 +37,8 @@ if os.path.isdir(DEMO_BACKEND_DIR) and DEMO_BACKEND_DIR not in sys.path:
     sys.path.insert(0, DEMO_BACKEND_DIR)
 
 sys.path.insert(0, os.path.join(REPO_ROOT, "code"))
-from workshop_support import get_model, load_secrets
-load_secrets(REPO_ROOT)
+from workshop_support import get_model, get_search_backend, is_local, load_secrets
+load_secrets(REPO_ROOT)  # local-first fork: also fills a placeholder NVIDIA_API_KEY for the local gateway
 
 from capabilities import CapabilityMiddleware, enabled_tools, restrict_backend
 
@@ -67,6 +67,14 @@ checkpointer = MemorySaver()
 # UI choices name the actual centrally configured model.
 MODEL_MAP = {"nemotron": get_model("chat"), "nemotron_fast": get_model("fast_chat")}
 MODEL_DISPLAY_NAMES = {"nemotron": "Nemotron 3.5 Super VL", "nemotron_fast": "Nemotron Lightning"}
+if is_local():
+    # Local-first fork: ChatNVIDIA reads NVIDIA_BASE_URL (the local gateway), so name the
+    # model that actually answers. The IDs "nemotron"/"nemotron_fast" stay as UI keys.
+    MODEL_DISPLAY_NAMES = {key: f"{model} (local)" for key, model in MODEL_MAP.items()}
+
+# "local" (default): the Web Search option searches data/it-knowledge-base offline.
+# "tavily": real web search with TAVILY_API_KEY (Exercise 2).
+SEARCH_BACKEND = get_search_backend()
 
 # Tools that require human approval before executing
 INTERRUPT_TOOLS = {
@@ -111,7 +119,15 @@ def _build_extra_tools(skill_ids: list[str]) -> list:
     """Build additional tools based on user-selected skills."""
     tools = []
 
-    if "websearch" in skill_ids:
+    if "websearch" in skill_ids and SEARCH_BACKEND == "local":
+        # Local-first fork (provided): no Tavily key and no internet. Web Search becomes an
+        # offline keyword search over data/it-knowledge-base with the same tool name and
+        # result shape, so capability checks, UI icons and prompts keep working. The
+        # exercise below is the Tavily path, used when WORKSHOP_SEARCH=tavily.
+        from workshop_support.local_search import make_search_results_tool
+        tools.append(make_search_results_tool(max_results=3))
+        print("[Agent] Added offline knowledge-base search (Web Search, local mode)")
+    elif "websearch" in skill_ids:
         try:
             from langchain_community.tools.tavily_search import TavilySearchResults
             tavily_key = ...
@@ -182,7 +198,10 @@ def _build_system_prompt(skill_ids: list[str], model_id: str, hitl_enabled: bool
 
     enabled = []
     if "websearch" in skill_ids:
-        enabled.append("- Web Search (tavily_search_results_json): search the internet")
+        if SEARCH_BACKEND == "local":
+            enabled.append("- Web Search (tavily_search_results_json): keyword search over the company's offline IT documents (no internet in this deployment)")
+        else:
+            enabled.append("- Web Search (tavily_search_results_json): search the internet")
     if "fileio" in skill_ids:
         enabled.append("- File I/O (read_file, write_file, edit_file, ls, glob, grep): manage files")
     if "execute" in skill_ids:

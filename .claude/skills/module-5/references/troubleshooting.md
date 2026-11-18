@@ -38,7 +38,8 @@ The Client adapter imports the completed `code/5-deep-agents/deep_agent.py`; whi
   *waiting for approval*, by design — approve/reject in the UI.
 
 ## Web search / Tavily
-- Selecting Web Search requires `TAVILY_API_KEY`; a missing key stops creation with a clear error. Web Search and RAG execute in the application, outside the file/shell Docker sandbox.
+- Local-first fork (default `WORKSHOP_SEARCH=local`): Web Search is an offline keyword search over
+  `data/it-knowledge-base`; no key. With `WORKSHOP_SEARCH=tavily`, selecting Web Search requires `TAVILY_API_KEY`; a missing key stops creation with a clear error. Web Search and RAG execute in the application, outside the file/shell Docker sandbox.
 
 ## Workspace & file paths
 - File-only mode uses virtual `/` and rejects traversal, outside paths and escaping

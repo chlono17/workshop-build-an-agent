@@ -106,3 +106,29 @@ def search(query: str, max_results: int = 3, corpus_dir: str | Path = DEFAULT_CO
             for score, doc in top
         ],
     }
+
+
+SEARCH_RESULTS_TOOL_NAME = "tavily_search_results_json"
+
+
+def make_search_results_tool(max_results: int = 3, name: str = SEARCH_RESULTS_TOOL_NAME):
+    """A LangChain tool shaped like TavilySearchResults, backed by the offline search.
+
+    Local-first fork: Modules 5-7 offer a "Web Search" option built on Tavily's
+    TavilySearchResults tool. This stand-in keeps that tool's name and output (a list
+    of {"title", "url", "content", "score"} dicts) so capability checks, UI icons and
+    prompts keep working, but searches data/it-knowledge-base with no key and no internet.
+    """
+    from langchain_core.tools import StructuredTool
+
+    def search_documents(query: str) -> list[dict]:
+        """Keyword search over the company's offline IT documents."""
+        return [{key: hit[key] for key in ("title", "url", "content", "score")}
+                for hit in search(query, max_results=max_results)["results"]]
+
+    return StructuredTool.from_function(
+        func=search_documents,
+        name=name,
+        description=("Keyword search over the company's offline IT knowledge base (local documents, "
+                     "no internet). Input: a search query. Returns titles, file:// URLs and excerpts."),
+    )

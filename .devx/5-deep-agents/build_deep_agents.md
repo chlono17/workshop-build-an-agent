@@ -35,6 +35,8 @@ The first step is connecting to an NVIDIA NIM model. Deep agents need a model th
 Fill in `_get_model()` to create a ChatNVIDIA instance.
 
 Use `MODEL_MAP` to look up the `model_id`, and `os.getenv("NVIDIA_API_KEY")` for the `api_key`.
+
+> **Local-first fork:** the code is the same. `ChatNVIDIA` reads `NVIDIA_BASE_URL`, so it calls the local gateway on the DGX Spark (Qwen3.8 27B for both `nemotron` and `nemotron_fast`; the IDs are just the UI's keys). `load_secrets()` puts a placeholder in `NVIDIA_API_KEY` because the gateway needs no NVIDIA key.
 Set temperature to 0.3. Keep the provided response limit and 90-second network timeout.
 
 <details class="dx-peek is-solution">
@@ -67,6 +69,8 @@ Deep agents come with built-in tools (filesystem, planning, etc.), but we can ad
 <button onclick="goToLineAndSelect('code/5-deep-agents/deep_agent.py', '# TODO: Exercise 2');"><i class="fas fa-code"></i> # TODO: Exercise 2</button>
 
 Fill in `_build_extra_tools()` to add a `TavilySearchResults` tool when `"websearch"` is in the skill list. Use ``os.getenv("TAVILY_API_KEY")`` for the ``api_key``, and ``max_results=3``.
+
+> **Local-first fork:** with `WORKSHOP_SEARCH=local` (the default) there is no Tavily key and no internet, so a provided branch just above the exercise gives the Web Search option an offline keyword search over `data/it-knowledge-base`. It keeps the tool name `tavily_search_results_json` and Tavily's result shape, so the permission guard, UI icons and prompts are unchanged. Complete the exercise anyway: it is the same pattern (add a tool only when its skill is selected), and it is the code that runs with `WORKSHOP_SEARCH=tavily`.
 
 <details class="dx-peek is-solution">
 <summary>🆘 Need some help?</summary>
@@ -278,8 +282,8 @@ POST /api/agent
 ```
 
 The backend ran your `create_agent()` function, which:
-1. Connected to NVIDIA Nemotron via NIM
-2. Added Tavily web search as an extra tool
+1. Connected to a chat model through ChatNVIDIA (the local 27B here; NVIDIA Nemotron via NIM upstream)
+2. Added a search tool as an extra tool (offline knowledge-base search here; Tavily with `WORKSHOP_SEARCH=tavily`)
 3. Built a system prompt with all capabilities listed
 4. Configured a `LocalShellBackend` for file/shell operations
 5. Called `create_deep_agent()` to assemble the full middleware pipeline

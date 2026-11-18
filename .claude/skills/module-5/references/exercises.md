@@ -27,7 +27,10 @@ for the learner.**
 
 ### E2 · `_build_extra_tools()` — add web search
 - **Goal:** append a Tavily tool when `"websearch"` is selected.
-- **L1:** "Inside the `if 'websearch' in skill_ids` block — where does the Tavily key come from? (The `if tavily_key:` guard and the missing-key error are provided.)"
+- **Local-first fork:** the block is now `elif "websearch" in skill_ids:` after a provided local
+  branch (offline knowledge-base search, same tool name). The exercise is the Tavily path; it runs
+  only with `WORKSHOP_SEARCH=tavily`, so in local mode the learner checks it by reading, not running.
+- **L1:** "Inside the `elif 'websearch' in skill_ids` block — where does the Tavily key come from? (The `if tavily_key:` guard and the missing-key error are provided.)"
 - **L2:** "The `# TODO: Exercise 2` comment names the environment variable and the result
   count. The class to instantiate is imported on the line above the blank; pass it the key
   variable and that count."

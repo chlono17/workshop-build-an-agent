@@ -13,10 +13,11 @@ export const skills: Skill[] = [
   {
     id: 'websearch',
     name: 'Web Search',
-    description: 'Real-time internet search via Tavily',
+    // Local-first fork: offline knowledge-base search unless WORKSHOP_SEARCH=tavily.
+    description: 'Search: offline IT knowledge base (local) or Tavily web search',
     category: 'tools',
     icon: '🌐',
-    sampleQuestions: ['What is in the news for today?', "What's new at GTC 2026?"],
+    sampleQuestions: ['Search for the guest WiFi policy', 'What is in the news for today? (Tavily mode)'],
     sandboxable: false,
   },
   {

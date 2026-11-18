@@ -250,3 +250,26 @@ def test_stream_errors_do_not_expose_provider_payloads(capsys):
     assert secret not in capsys.readouterr().out
     event = server._process_event({'event': 'on_tool_error', 'data': {'error': RuntimeError(secret)}}, {})
     assert secret not in event['data']
+
+
+def test_local_web_search_needs_no_key_and_keeps_the_guarded_tool_name(monkeypatch):
+    """Local-first fork: Web Search is an offline knowledge-base search by default."""
+    monkeypatch.setenv('WORKSHOP_SEARCH', 'local')
+    monkeypatch.delenv('TAVILY_API_KEY', raising=False)
+    mod = factory()
+    [tool] = mod._build_extra_tools(['websearch'])
+    # Same name as TavilySearchResults, so CapabilityMiddleware and the UI treat it as Web Search.
+    assert tool.name in CapabilityMiddleware(['websearch']).allowed
+    hits = tool.invoke({'query': 'guest WiFi access'})
+    assert hits and hits[0]['url'].startswith('file://data/it-knowledge-base/')
+    assert 'offline' in mod._build_system_prompt(['websearch'], 'nemotron', False)
+
+
+def test_tavily_web_search_still_requires_its_key(monkeypatch):
+    pytest.importorskip('langchain_community.tools.tavily_search')
+    monkeypatch.setenv('WORKSHOP_SEARCH', 'tavily')
+    monkeypatch.delenv('TAVILY_API_KEY', raising=False)
+    mod = factory()
+    monkeypatch.setattr(mod.os, 'getenv', lambda name, default=None: None if name == 'TAVILY_API_KEY' else os.environ.get(name, default))
+    with pytest.raises(ValueError, match='TAVILY_API_KEY'):
+        mod._build_extra_tools(['websearch'])

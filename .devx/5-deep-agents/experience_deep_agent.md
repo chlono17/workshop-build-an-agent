@@ -74,7 +74,7 @@ The full demo has four phases. Click on each to learn more.
 <details class="dx-peek">
 <summary>1. Pick Your Model</summary>
 
-Click a model card to select it. The cards show the configured **Nemotron 3.5 Super VL** and **Nemotron Lightning** models. Both support tool calling; availability and response quality can vary. The model's brand color will theme the entire UI.
+Click a model card to select it. The cards show the configured **Nemotron 3.5 Super VL** and **Nemotron Lightning** models; in this local-first fork both cards are served by the local Qwen3.8 27B on the DGX Spark (the backend reports the real model name). Both support tool calling; availability and response quality can vary. The model's brand color will theme the entire UI.
 
 </details>
 
@@ -90,7 +90,7 @@ After picking a model, you'll see three panels:
 | **Settings** (right) | Sandbox mode toggle and other configuration |
 
 **Drag tools** from the left palette onto the center area:
-- 🌐 **Web Search** — Real-time internet search via Tavily
+- 🌐 **Web Search** — Real-time internet search via Tavily (local-first fork: offline keyword search over the IT knowledge base, no key needed)
 - 📁 **File I/O** — Read, write, edit, search files
 - 💻 **Shell Execution** — Run commands and scripts
 - ⚡ **Superpowers** — TDD and debugging methodology
@@ -117,7 +117,7 @@ Once built, you're in the **chat interface**:
 Try these to verify everything works:
 - *"List all files in the workspace"* — tests File I/O
 - *"Write a hello world Python script and run it"* — tests File I/O + Shell
-- *"What's in the news today?"* — tests Web Search
+- *"What's in the news today?"* — tests Web Search (local-first fork: try *"Search for the guest WiFi policy"* instead; there is no news offline)
 
 </details>
 
