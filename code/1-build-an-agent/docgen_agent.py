@@ -8,17 +8,17 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from workshop_support import get_model, load_secrets
+from workshop_support import get_api_key, get_base_url, get_model, load_secrets
 
 load_secrets()
 
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
-from tools import search_tavily
+from tools import SEARCH_BACKEND, search_tavily
 
 # Load configuration
-API_KEY = os.environ["NVIDIA_API_KEY"]
-MODEL_URL = "https://integrate.api.nvidia.com/v1"
+API_KEY = get_api_key()
+MODEL_URL = get_base_url()  # local gateway by default; see variables.env
 MODEL_NAME = get_model("chat")
 
 # Initialize the LLM
@@ -80,6 +80,16 @@ Output format (default)
 User interaction
 - Assume the user’s message contains the topic and any constraints (timeframe, audience, length).
 - If crucial details are missing (e.g., required timeframe or audience) and you cannot infer them, ask ONE brief clarifying question; otherwise proceed with reasonable assumptions and state them.
+"""
+
+if SEARCH_BACKEND == "local":
+    # Local-first fork: the search tool reads the company's internal IT knowledge base.
+    system_prompt += """
+Local knowledge base mode
+- search_tavily searches the company's internal IT knowledge base (data/it-knowledge-base), not the internet.
+- Treat those documents as your authoritative sources. Cite them by title, and use the file:// path as the URL.
+- If the knowledge base does not cover something, say so plainly instead of filling the gap from memory.
+- Write money as "USD 25" or "25 dollars", never with a bare $ sign: the report is rendered as Markdown and two $ signs turn the text between them into a math formula.
 """
 
 # Create the agent

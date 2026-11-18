@@ -48,7 +48,7 @@ The model is your agent's brain - it reads the conversation, decides what to do 
 - **Follows instructions reliably**: Agents depend on the model respecting system prompts and constraints
 - **Reasons well**: Multi-step tasks require the model to plan and adapt
 
-In this workshop, we use **NVIDIA Nemotron 3.5 Super VL (120B)** - a powerful model with strong reasoning ability. It's hosted on NVIDIA's API catalog, so you can get started without local GPU setup.
+In this local-first fork, we use **Qwen3.8 27B (NVFP4)** running on your own DGX Spark through NVIDIA Sync's Model Launcher. Nothing leaves the machine and no cloud API key is needed. (The original workshop uses NVIDIA Nemotron 3.5 Super VL on NVIDIA's hosted API.)
 
 ### System Prompts
 
