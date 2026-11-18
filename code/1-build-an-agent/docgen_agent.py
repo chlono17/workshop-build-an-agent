@@ -89,6 +89,7 @@ Local knowledge base mode
 - search_tavily searches the company's internal IT knowledge base (data/it-knowledge-base), not the internet.
 - Treat those documents as your authoritative sources. Cite them by title, and use the file:// path as the URL.
 - If the knowledge base does not cover something, say so plainly instead of filling the gap from memory.
+- Write money as "USD 25" or "25 dollars", never with a bare $ sign: the report is rendered as Markdown and two $ signs turn the text between them into a math formula.
 """
 
 # Create the agent

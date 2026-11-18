@@ -12,8 +12,8 @@ Remember, there are four primary components to an agent: the model, tools, memor
 In this exercise, we wire up all four - the same anatomy, now made concrete:
 
 <div class="dx-bento dx-reveal">
-  <div class="dx-cell"><h4>MODEL</h4>NVIDIA Nemotron 3.5 Super VL (120B), accessed via NVIDIA's API.</div>
-  <div class="dx-cell"><h4>TOOLS</h4>A web search function using the Tavily Search Engine API.</div>
+  <div class="dx-cell"><h4>MODEL</h4>Qwen3.8 27B (NVFP4), running locally on the DGX Spark.</div>
+  <div class="dx-cell"><h4>TOOLS</h4>A search function. In this fork it searches the local IT knowledge base (BM25, offline); set WORKSHOP_SEARCH=tavily to use the Tavily web search API instead.</div>
   <div class="dx-cell"><h4>MEMORY / STATE</h4>Managed automatically by LangChain as conversation history.</div>
   <div class="dx-cell"><h4>ROUTING</h4>Handled by LangChain's agent framework - no manual loop needed.</div>
 </div>
@@ -24,7 +24,7 @@ In this exercise, we wire up all four - the same anatomy, now made concrete:
 
 A prebuilt tool called <button onclick="goToLineAndSelect('code/1-build-an-agent/tools.py', 'async def search_tavily');"><i class="fas fa-code"></i> search_tavily</button> is provided.
 
-Similar to our last exercise, this is just a Python function. This function calls the Tavily API and then formats the results for the model.
+Similar to our last exercise, this is just a Python function. This function calls the Tavily API and then formats the results for the model. In this local-first fork the same tool name is bound to `search_local`, which searches the Markdown files in `data/it-knowledge-base` instead, so the agent runs with no internet and no key.
 
 Because we are using LangChain, we can use the `@tool` decorator to automatically create the tool JSON definition.
 
