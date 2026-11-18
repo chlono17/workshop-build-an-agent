@@ -3,7 +3,8 @@ RAG Agent with MCP and Skills
 
 This agent combines:
 1. RAG - Knowledge base retrieval for IT help desk
-2. MCP - Web search via Tavily for current information
+2. MCP - Search through an MCP server: the local mcp_server.py (offline documents,
+   the default in this fork) or Tavily's hosted web search (WORKSHOP_SEARCH=tavily)
 3. Skills - Dynamic expertise loading for specialized tasks
 """
 
@@ -25,7 +26,7 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA, NVIDIAEmbeddings, NVIDIARe
 from langgraph.prebuilt import create_react_agent
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from workshop_support import get_model, load_secrets
+from workshop_support import LOCAL_MCP_PORT, LOCAL_MCP_URL, get_model, get_search_backend, load_secrets
 from workshop_support.resilience import resilient_tool, retry
 
 load_secrets()
@@ -48,6 +49,19 @@ RETRIEVER_EMBEDDING_MODEL = get_model("embedding")
 
 # API Keys
 TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
+
+# MCP server for PART 2. Local-first fork: WORKSHOP_SEARCH=local (default) uses the MCP
+# server in mcp_server.py on this machine (no key, no internet); start it first with
+#   cd code/2-agentic-rag && uvicorn mcp_server:app --port 8002
+# WORKSHOP_SEARCH=tavily uses Tavily's hosted MCP server, authenticated with a header.
+SEARCH_BACKEND = get_search_backend()
+if SEARCH_BACKEND == "local":
+    MCP_URL = LOCAL_MCP_URL  # http://localhost:8002/mcp/
+    MCP_HEADERS = {}  # your own server on localhost needs no key
+else:
+    MCP_URL = "https://mcp.tavily.com/mcp/"
+    # The key goes in a header, never in the URL, where it could end up in logs.
+    MCP_HEADERS = {"Authorization": f"Bearer {TAVILY_API_KEY}"}
 
 # =============================================================================
 # PART 1: RAG - Knowledge Base Retrieval
@@ -79,7 +93,7 @@ for chunk in chunks:
 # EXERCISE: Create the embeddings model. Set truncate to 'END'.
 embeddings = ...
 
-# Embedding calls the hosted model; retry a transient network failure.
+# Embedding calls the model endpoint (local gateway or hosted); retry a transient network failure.
 vectordb = retry(lambda: FAISS.from_documents(chunks, embeddings))
 
 # Create a document retriever and reranker
@@ -106,14 +120,17 @@ RETRIEVER_TOOL = resilient_tool(create_retriever_tool(
 ))
 
 # =============================================================================
-# PART 2A: MCP (Remote Server) - Web Search Tool via MCP Protocol
+# PART 2A: MCP (Streamable HTTP) - Search Tool via MCP Protocol
 # =============================================================================
-# This demonstrates connecting to Tavily's hosted MCP server.
-# Connect directly over HTTP; keep the API key out of URLs and process arguments.
+# This demonstrates connecting to an MCP server over Streamable HTTP.
+# Local-first fork: by default that server is mcp_server.py on this machine (start it
+# first: `cd code/2-agentic-rag && uvicorn mcp_server:app --port 8002`). With
+# WORKSHOP_SEARCH=tavily it is Tavily's hosted server. MCP_URL and MCP_HEADERS (above)
+# already hold the right values for the mode you are in.
 
-# EXERCISE: Configure the MCP connection to Tavily's remote MCP server
-# Hint: use 'streamable_http' with URL 'https://mcp.tavily.com/mcp/'.
-# Hint: pass the key in headers: {'Authorization': f'Bearer {TAVILY_API_KEY}'}.
+# EXERCISE: Configure the MCP connection to the MCP server, under the name "tavily"
+# Hint: use the 'streamable_http' transport with URL MCP_URL.
+# Hint: pass MCP_HEADERS as 'headers' (empty locally; the Tavily key in hosted mode).
 MCP_CONFIG = ...
 
 
@@ -136,23 +153,37 @@ async def web_search(query: str) -> str:
                 return result.content[0].text
             return "No results found."
     except Exception as e:
+        if SEARCH_BACKEND == "local":
+            return (f"Search failed ({type(e).__name__}). Is the local MCP server running? "
+                    f"Start it: cd code/2-agentic-rag && uvicorn mcp_server:app --port {LOCAL_MCP_PORT}")
         return f"Search failed ({type(e).__name__}). Check the Tavily key and Workshop Health."
 
+
+if SEARCH_BACKEND == "local":
+    # Local-first fork: there is no web here. Tell the model what this tool really searches,
+    # so it does not present local documents as current web results.
+    web_search.description = (
+        "Keyword search, through the local MCP server, over the company's offline document "
+        "collection (no internet). Use it when company_llc_it_knowledge_base returns nothing "
+        "relevant, or to find a document by exact words. Cite the returned file:// URLs."
+    )
+
 # =============================================================================
-# PART 2B: MCP (local server) - Web Search Tool
+# PART 2B: MCP (local server, SSE transport) - Search Tool
 # =============================================================================
 
-# EXERCISE (Optional): Swap to the below implementation to use a local MCP server
+# EXERCISE (Optional): Swap to the below implementation to use the SSE transport
+# (an older MCP transport) against the same local MCP server
 # 1. Comment out PART 2A
 # 2. Uncomment PART 2B below. Save the file.
-# 3. Run the local MCP server: `cd code/2-agentic-rag && uvicorn mcp_server:app --reload --port 8000`
+# 3. Run the local MCP server: `cd code/2-agentic-rag && uvicorn mcp_server:app --reload --port 8002`
 # 4. Restart the agent: `cd code/2-agentic-rag && langgraph dev`
 # 5. Test the agent in the Simple Agents Client.
     
 # @tool
 # async def web_search(query: str) -> str:
 #     """
-#     Search the web for current information using Tavily (via persistent SSE server).
+#     Search through the local MCP server (mcp_server.py) over the SSE transport.
 #     """
 #     from langchain_mcp_adapters.client import MultiServerMCPClient
 
@@ -160,7 +191,7 @@ async def web_search(query: str) -> str:
 #     mcp_config = {
 #         "tavily": {
 #             "transport": "sse",  
-#             "url": "http://localhost:8000/sse"
+#             "url": "http://localhost:8002/sse"
 #         }
 #     }
 

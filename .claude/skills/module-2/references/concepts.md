@@ -53,12 +53,14 @@ Documents must be turned into searchable vectors before query time:
   **tools** (callable functions), **resources** (readable data), **prompts** (templates).
 - **Key idea (the quiz):** the tool's code runs **on the MCP server**, not in your
   agent and not in the LLM. Your agent discovers and calls it over the protocol.
-- **In this module:** add a `web_search` tool backed by Tavily's MCP server.
-  - *Remote* (`mcp.tavily.com`): `MultiServerMCPClient` with `transport: "streamable_http"`,
+- **In this module:** add a `web_search` tool backed by an MCP server. Local-first fork default:
+  the local `mcp_server.py` (`uvicorn mcp_server:app --port 8002`), which exposes `tavily_search`
+  as an offline keyword search over the IT knowledge base, over Streamable HTTP at
+  `http://localhost:8002/mcp/` (`MCP_URL`, no headers).
+  - *Remote, Tavily mode* (`mcp.tavily.com`): `MultiServerMCPClient` with `transport: "streamable_http"`,
     a credential-free URL, and an Authorization header. No bridge subprocess is needed.
-  - *Local* (optional): run `mcp_server.py` (a Starlette + SSE MCP server wrapping
-    Tavily) with `uvicorn mcp_server:app --port 8000`, connect via `transport: "sse"`,
-    `url: "http://localhost:8000/sse"`.
+  - *SSE* (optional, PART 2B): the same `mcp_server.py` also serves SSE; connect via
+    `transport: "sse"`, `url: "http://localhost:8002/sse"`.
 - **Why it matters here:** it replaces Module 1's hand-written Tavily tool — "build
   once, use anywhere."
 

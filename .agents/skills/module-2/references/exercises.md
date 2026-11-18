@@ -19,7 +19,9 @@ dictate them, in whole or in part.** Equivalent code is fine. L2 hints are point
 
 Constants are pre-defined (do not have the learner re-type them): `CHUNK_SIZE=800`,
 `CHUNK_OVERLAP=120`, `LLM_MODEL`, `RETRIEVER_EMBEDDING_MODEL`,
-`RETRIEVER_RERANK_MODEL`, `TAVILY_API_KEY`.
+`RETRIEVER_RERANK_MODEL`, `TAVILY_API_KEY`, `MCP_URL`, `MCP_HEADERS` (local-first fork:
+the last two are set by mode - local `mcp_server.py` at `http://localhost:8002/mcp/` with no
+headers by default, Tavily's hosted server with a Bearer header when `WORKSHOP_SEARCH=tavily`).
 
 Always start by asking what they've tried and reading the `langgraph dev` log with them.
 
@@ -78,20 +80,22 @@ Always start by asking what they've tried and reading the `langgraph dev` log wi
 ## Section B — `mcp.md` (add web search via MCP)
 
 ### B1 · `MCP_CONFIG`
-- **Goal:** connect directly to Tavily over Streamable HTTP, with header authentication.
+- **Goal:** connect to the MCP server over Streamable HTTP (local `mcp_server.py` by default in
+  this fork; Tavily's hosted server, with header authentication, in Tavily mode). Locally the
+  server must be running first: `cd code/2-agentic-rag && uvicorn mcp_server:app --port 8002`.
 - **L1:** "Which transport connects to an HTTP MCP endpoint? Where can a credential go without becoming part of its URL?"
-- **L2:** "The two `# Hint:` comments above `MCP_CONFIG` give the transport, URL and header.
+- **L2:** "The two `# Hint:` comments above `MCP_CONFIG` name the transport and the constants that hold the URL and headers.
   For the dict's shape, compare the commented-out `mcp_config` in PART 2B: one server entry
   under the name that `client.session(...)` opens, with `transport`/`url` (plus `headers` here)."
-- **Common mistakes:** using `sse` (the optional local example); placing the key in the URL; printing the headers.
-- **Target:** `{"tavily": {"transport": "streamable_http", "url": "https://mcp.tavily.com/mcp/", "headers": {"Authorization": f"Bearer {TAVILY_API_KEY}"}}}`
+- **Common mistakes:** using `sse` (the optional PART 2B example); hard-coding Tavily's URL in local mode; placing a key in the URL; printing the headers; not starting the local MCP server.
+- **Target:** `{"tavily": {"transport": "streamable_http", "url": MCP_URL, "headers": MCP_HEADERS}}`
 
 ### B2 · Call the tool via MCP
 - **Goal:** invoke the remote tool through the open MCP session.
 - **L1:** "Inside the `async with client.session('tavily') as session:` block — what method calls a named tool? What's the tool named, and what argument does it take?"
 - **L2:** "`session` is an MCP client session: look up its `call_tool` method (tool name, then
   an arguments dict). The tool name and its single argument appear in `mcp_server.py`'s
-  `list_tools()`, which mirrors Tavily's tool. The call is a coroutine."
+  `list_tools()`, which keeps Tavily's tool name and input in both modes. The call is a coroutine."
 - **Common mistakes:** forgetting `await`; wrong tool name; passing `query` positionally.
 - **Target:** `result = await session.call_tool("tavily_search", {"query": query})`
 
@@ -103,11 +107,11 @@ Always start by asking what they've tried and reading the `langgraph dev` log wi
 - **Common mistakes:** dropping `RETRIEVER_TOOL`; adding skills tools (not built yet).
 - **Target (this section):** `create_react_agent(model=llm, tools=[RETRIEVER_TOOL, web_search], prompt=SYSTEM_PROMPT)`
 
-### B-optional · Local MCP server (PART 2B)
-Guide, don't do: run `cd code/2-agentic-rag && uvicorn mcp_server:app --reload --port 8000`
-in a new terminal; in `rag_agent.py` comment out PART 2A and uncomment PART 2B (which
-uses `transport: "sse"`, `url: "http://localhost:8000/sse"`); restart `langgraph dev`.
-This connects to `mcp_server.py` instead of Tavily's hosted server.
+### B-optional · SSE transport (PART 2B)
+Guide, don't do: keep `cd code/2-agentic-rag && uvicorn mcp_server:app --reload --port 8002`
+running in a terminal; in `rag_agent.py` comment out PART 2A and uncomment PART 2B (which
+uses `transport: "sse"`, `url: "http://localhost:8002/sse"`); restart `langgraph dev`.
+This connects to the same local `mcp_server.py` over the older SSE transport.
 
 ---
 ## Section C — `skills.md` (add dynamic Skills)

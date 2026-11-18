@@ -1,11 +1,11 @@
-<div class="dx-hero" data-eyebrow="MODULE 02 / AGENTIC RAG" data-title="Agentic RAG Workshop" data-meta="DURATION::2-3 hrs|MODEL::Nemotron 3.5 Super VL + NeMo Retriever|GPU::Hosted API; local NIM optional"></div>
+<div class="dx-hero" data-eyebrow="MODULE 02 / AGENTIC RAG" data-title="Agentic RAG Workshop" data-meta="DURATION::2-3 hrs|MODEL::Qwen3.8 27B + local embed/rerank|GPU::DGX Spark, local endpoint"></div>
 
-Build an **IT Help Desk Agent** with NVIDIA models and LangGraph. A basic RAG pipeline retrieves before generation; this agent instead lets the model decide when and how to call retrieval tools. You'll add web search and reusable skills, then test the agent through the Simple Agents Client.
+Build an **IT Help Desk Agent** with NVIDIA models and LangGraph. A basic RAG pipeline retrieves before generation; this agent instead lets the model decide when and how to call retrieval tools. You'll add a search tool served over MCP (offline in this fork; web search in hosted mode) and reusable skills, then test the agent through the Simple Agents Client.
 
 This workshop will help you understand the evolution from basic LLMs to traditional RAG to intelligent agentic RAG. Here's what you're in for:
 
 <div class="dx-bento dx-reveal">
-  <div class="dx-cell is-wide is-tall"><h4>YOU WILL BUILD</h4>An <b>IT Help Desk Agent</b> that decides when and how to search a knowledge base, the web, and loadable skills to answer queries - agentic RAG, not fixed retrieval.</div>
+  <div class="dx-cell is-wide is-tall"><h4>YOU WILL BUILD</h4>An <b>IT Help Desk Agent</b> that decides when and how to search a knowledge base, an MCP search server, and loadable skills to answer queries - agentic RAG, not fixed retrieval.</div>
   <div class="dx-cell"><h4>DURATION</h4><span class="dx-big">2-3 h</span>self-paced</div>
   <div class="dx-cell"><h4>BUILT WITH</h4>LangGraph + NVIDIA NeMo Retriever + FAISS</div>
   <div class="dx-cell is-wide"><h4>YOU'LL TAKE HOME</h4>A working ReAct RAG agent, a FAISS vector database, hands-on with NVIDIA embedding/reranking/chat models, plus MCP and Skills integration.</div>

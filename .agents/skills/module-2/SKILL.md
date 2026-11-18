@@ -62,13 +62,13 @@ Flow (teaching narrative in `.devx/2-agentic-rag/`, code in `code/2-agentic-rag/
 
 | Step | Teaching page | Focus | Code touched |
 |---|---|---|---|
-| Setup | `secrets.md` | NVIDIA + Tavily keys (both REQUIRED); LangSmith optional | `secrets.env` |
+| Setup | `secrets.md` | Local-first fork: Spark model key only (NVIDIA key in hosted mode, Tavily key only with `WORKSHOP_SEARCH=tavily`); LangSmith optional | `secrets.env` |
 | Concepts | `intro.md` | LLM → RAG → agentic RAG; traditional-RAG limits | — |
 | Build | `agentic_rag.md` | chunk → embed → FAISS → rerank → retriever tool → agent | `rag_agent.py` (5 blanks) |
 | Run | `running.md` | `langgraph dev`, Simple Agents Client, LangSmith tracing | — |
-| MCP | `mcp.md` | add `web_search` via Tavily MCP (remote; optional local) | `rag_agent.py` (3 blanks) + `mcp_server.py` |
+| MCP | `mcp.md` | add `web_search` via MCP: local `mcp_server.py` on port 8002 (default in this fork) or Tavily's hosted server; optional SSE | `rag_agent.py` (3 blanks) + `mcp_server.py` |
 | Skills | `skills.md` | add `get_skill` / `list_available_skills` | `rag_agent.py` (3 blanks) |
-| Local NIM | `migrate.md` | run the LLM in a local NIM container; repoint `llm` | `rag_agent.py` (1 change) + docker |
+| Local NIM | `migrate.md` | OPTIONAL in this fork (already local; needs the 27B stopped): run the LLM in a local NIM container; repoint `llm` | `rag_agent.py` (1 change) + docker |
 
 **What they build:** an IT Help Desk agent over a 12-doc knowledge base
 (`data/it-knowledge-base/`). Models: LLM `nvidia/nemotron-3.5-super-vl-120b-a12b`
@@ -113,8 +113,8 @@ Full reference + the workshop's framing in `references/concepts.md`. Essentials:
   (`references/troubleshooting.md`); for env/runtime give direct fixes. Unfilled blanks
   show up differently: most PART 1 blanks fail at import (`'ellipsis' object has no
   attribute ...` in the `langgraph dev` log), but the MCP blanks never raise — the
-  `web_search` tool returns "Search failed (TypeError). Check the Tavily key and Workshop
-  Health." to the agent while `MCP_CONFIG` is `...` (see the unfilled-blank list in
+  `web_search` tool returns "Search failed (TypeError). ..." to the agent (locally: "Is the local
+  MCP server running?"; Tavily mode: "Check the Tavily key and Workshop Health.") while `MCP_CONFIG` is `...` (see the unfilled-blank list in
   troubleshooting).
 - **Check understanding / "quiz me":** ask about agentic-vs-traditional RAG, MCP vs
   Skills, or why reranking helps.
@@ -135,7 +135,11 @@ Full reference + the workshop's framing in `references/concepts.md`. Essentials:
 - **`references/quizzes.md`** — deeper "Check Your Understanding" feedback.
 
 ## Environment & hardware
-**No GPU required for the main path.** The LLM + NeMo Retriever embedding/reranking run on
+**Local-first fork:** the LLM (Qwen3.8 27B), embeddings and reranking run on the DGX Spark behind
+the local gateway (`NVIDIA_BASE_URL`), and MCP search defaults to the local `mcp_server.py`
+(`uvicorn mcp_server:app --port 8002`, offline BM25 over the IT knowledge base, tool still named
+`tavily_search`). No cloud key or internet is needed. Upstream (hosted mode, `NVIDIA_BASE_URL`
+unset): **No GPU required for the main path.** The LLM + NeMo Retriever embedding/reranking run on
 **hosted** NIM; FAISS is CPU; the default web search connects directly to Tavily's hosted
 MCP server (`streamable_http` to `https://mcp.tavily.com/mcp/`, key sent as an
 `Authorization: Bearer` header — no Node/`npx`, no local process). **No GPU, no Docker**

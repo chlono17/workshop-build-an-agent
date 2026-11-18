@@ -54,6 +54,12 @@ def get_search_backend() -> str:
     return backend
 
 
+# Module 2's MCP server (code/2-agentic-rag/mcp_server.py). Not 8000 (the Module 5
+# backend) or 8001 (the Module 4 reward server), so they can run side by side.
+LOCAL_MCP_PORT = 8002
+LOCAL_MCP_URL = f"http://localhost:{LOCAL_MCP_PORT}/mcp/"
+
+
 def load_secrets(project_root: str | Path | None = None) -> Path:
     """Load saved workshop settings, including key updates and clears."""
     from dotenv import load_dotenv

@@ -25,7 +25,7 @@ import urllib.request
 from dotenv import dotenv_values
 from packaging.version import InvalidVersion, Version
 
-from . import LOCAL_KEY_PLACEHOLDER, PROJECT_ROOT, get_base_url, get_model, get_search_backend, is_local
+from . import LOCAL_KEY_PLACEHOLDER, LOCAL_MCP_PORT, PROJECT_ROOT, get_base_url, get_model, get_search_backend, is_local
 
 STATIC = Path(__file__).with_name("static")
 THEME = PROJECT_ROOT / ".devx/_static"
@@ -351,6 +351,8 @@ class HealthState:
                         ("LANGSMITH_API_KEY", "LangSmith", False, "Optional tracing. The workshop works without it.")]]
         services = [
             local_service("RAG agent", 2024, "/ok", lambda r: r.get("ok") is True, [2, 3]),
+            local_service("MCP search server", LOCAL_MCP_PORT, "/health",
+                          lambda r: r.get("status") == "ok" and r.get("tool") == "tavily_search", [2]),
             local_service("Training reward server", 8001, "/health", lambda r: r.get("status") in ("healthy", "ok"), [4]),
             local_service("Deep Agents backend", 8000, "/api/health", lambda r: r.get("status") == "ok", [5]),
             sandbox_service(),

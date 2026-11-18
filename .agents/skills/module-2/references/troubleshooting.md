@@ -23,8 +23,8 @@ when `langgraph dev` imports the file, in file order:
   function` → `AGENT` still `...` (A5/B3/C3).
 
 Tool blanks do **not** raise; the agent receives a tool result instead:
-- `MCP_CONFIG = ...` (B1) → `web_search` returns **"Search failed (TypeError). Check the
-  Tavily key and Workshop Health."** Its `try/except` catches everything, so there is no
+- `MCP_CONFIG = ...` (B1) → `web_search` returns **"Search failed (TypeError). ..."** (local mode adds
+  "Is the local MCP server running?"; Tavily mode "Check the Tavily key and Workshop Health.") Its `try/except` catches everything, so there is no
   traceback in the log; check the blank before the key.
 - `result = ...` (B2) with a working connection → the same message with `(AttributeError)`.
   Connection or credential failures produce the same message format too, so read the
@@ -50,8 +50,9 @@ Identify *which* blank from the traceback line or tool result and **point them t
   log), or the wrong graph is selected.
 
 ## API keys / models
-- Keys load from repo-root **`secrets.env`** (gitignored). Needs **`NVIDIA_API_KEY`**
-  (LLM + embeddings + rerank) and **`TAVILY_API_KEY`** (web search). LangSmith optional.
+- Keys load from repo-root **`secrets.env`** (gitignored). Local-first fork: only the Spark model
+  key (`SPARK_LLM_API_KEY`, read by the local gateway). Hosted mode needs **`NVIDIA_API_KEY`**
+  (LLM + embeddings + rerank); **`TAVILY_API_KEY`** only with `WORKSHOP_SEARCH=tavily`. LangSmith optional.
 - **401 / auth** on any NVIDIA call → key missing/invalid; set it in `secrets.env`
   (https://build.nvidia.com) and restart `langgraph dev`.
 - **404 / HTTP 410 on embeddings or rerank** → an out-of-date model id. The **current**
@@ -60,14 +61,18 @@ Identify *which* blank from the traceback line or tool result and **point them t
   already uses the current ids — if a learner changed them, restore the constants.
 - Embeddings error about input length → ensure `truncate="END"` is set (A2).
 
-## MCP web search
-- **Remote (default):** direct `streamable_http` to `https://mcp.tavily.com/mcp/`,
+## MCP search
+- **Local (default in this fork):** `cd code/2-agentic-rag && uvicorn mcp_server:app --port 8002`,
+  then PART 2A connects over Streamable HTTP to `http://localhost:8002/mcp/`. "Is the local MCP
+  server running?" → start it; Workshop Health shows *MCP search server*. `ImportError` from
+  `mcp`/`langchain_mcp_adapters` → `mcp` 2.x is installed; the repo pins `mcp<2` (rebuild).
+- **Remote (Tavily mode):** direct `streamable_http` to `https://mcp.tavily.com/mcp/`,
   with the key in the Authorization header. Check network egress, the key in
   `secrets.env`, and Workshop Health. Do not print headers or put the key in a URL.
-- **Local (optional, PART 2B):** run `cd code/2-agentic-rag && uvicorn mcp_server:app
-  --reload --port 8000`; the agent connects via SSE at `http://localhost:8000/sse`.
+- **SSE (optional, PART 2B):** run `cd code/2-agentic-rag && uvicorn mcp_server:app
+  --reload --port 8002`; the agent connects via SSE at `http://localhost:8002/sse`.
   "Is the server running?" errors → the uvicorn server isn't up, or PART 2A wasn't
-  swapped for PART 2B. `mcp_server.py` itself raises at startup if `TAVILY_API_KEY` is unset.
+  swapped for PART 2B. `mcp_server.py` raises at startup if `WORKSHOP_SEARCH=tavily` and `TAVILY_API_KEY` is unset.
 
 ## Skills (Part 3)
 - `get_skill` returning "Skill 'X' not found" → wrong skill name or `SKILLS_DIR` path.

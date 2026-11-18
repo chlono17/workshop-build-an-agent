@@ -18,8 +18,8 @@ why each distractor is tempting, and how to go deeper.
 
 ## `mcp.md` — "Where does the Tavily MCP tool's code actually run?"
 - **Correct:** *On the MCP server; your agent discovers and calls it over the protocol.*
-- **Why:** MCP decouples tools from the agent — the tool lives/runs on the server (Tavily's
-  hosted one here); your agent just calls it. "Build once, use anywhere."
+- **Why:** MCP decouples tools from the agent — the tool lives/runs on the server (the local
+  `mcp_server.py` process in this fork; Tavily's hosted one upstream); your agent just calls it. "Build once, use anywhere."
 - **Distractors:** *inside your agent's process after MCP copies the code* → that's the
   pre-MCP, bundled-tool approach MCP exists to replace; *the LLM runs it directly* → the LLM
   never executes tool code (same menu-not-kitchen idea as Module 1).

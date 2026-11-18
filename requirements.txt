@@ -14,6 +14,9 @@ langchain-openai>1,<2
 langchain>1,<2
 langchain-classic>=1.0.0
 langchain_mcp_adapters~=0.2.1
+# mcp 2.x renamed the server and client APIs that langchain_mcp_adapters 0.2 and
+# code/2-agentic-rag/mcp_server.py import; a fresh build without this pin breaks MCP.
+mcp>=1.9.2,<2
 langgraph-cli[inmem]
 langgraph>1,<2
 langsmith~=0.3.0
