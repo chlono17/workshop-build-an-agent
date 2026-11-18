@@ -250,7 +250,7 @@ params=CategorySamplerParams(values=[
 
 <!-- fold:break -->
 
-Start with the notebook's 25-row batch and one worker. Inspect the results before increasing the count; if the provider returns 429, wait and retry or use the shipped dataset.
+Start with the notebook's 25-row batch and one worker. Inspect the results before increasing the count; if the provider returns 429, wait and retry or use the shipped dataset. In this local-first fork, Data Designer's `nvidia` provider is pointed at the local gateway (`DataDesigner(model_providers=data_designer_providers())`), so the 27B on the Spark generates the rows: there is no hosted rate limit, but the 27B must be running.
 
 ### Exercise: Train/Val Split
 

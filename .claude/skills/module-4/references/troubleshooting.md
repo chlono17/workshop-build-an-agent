@@ -9,7 +9,7 @@ server for the learner** — diagnose, then let them act.
 - **Recommended:** A100/H100 (80GB) for the GRPO step — base model is
   `NVIDIA-Nemotron-Nano-9B-v2` in **bf16** (`load_in_4bit=False`, because Mamba2 kernels
   are 4-bit-incompatible), trained with LoRA + GRPO rollouts → VRAM-hungry.
-- **DGX Spark (GB10):** shared GPU/CPU memory must have enough free capacity for weights, optimizer and rollouts. Check the CUDA/Mamba build before loading the 9B model.
+- **DGX Spark (GB10):** shared GPU/CPU memory must have enough free capacity for weights, optimizer and rollouts. Check the CUDA/Mamba build before loading the 9B model. Local-first fork: the 27B chat model keeps ~114 GB while it runs, so stop it first (NVIDIA Sync -> Models -> Stop) and start it again after training; the notebook's first code cell reports free memory and whether the 27B is loaded.
 - **OOM during training** (in order): reduce `num_generations` 4→2; `per_device_train_batch_size`→1;
   raise `gradient_accumulation_steps` to compensate; ensure gradient checkpointing on;
   reduce `max_seq_length` if prompts allow. Memory ≈ batch × num_generations × seq_length.
@@ -75,13 +75,16 @@ ordered correctly (after load, before PEFT).
 - Base agent run command: `cd code/4-agent-customization && python3.12 -m bash_agent.main_langgraph`.
 
 ## Keys
+Local-first fork: no cloud key; SDG (`DataDesigner(model_providers=data_designer_providers())`)
+and the planner use the local gateway (the 27B must be running for them). Hosted mode:
 `secrets.env` (repo root) needs **`NVIDIA_API_KEY`** — for SDG (hosted Data Designer model)
 and for the hosted planner in `bash_agent.ipynb`, `03_run_agent.ipynb` and `main_hf`. The base
 model downloads from Hugging Face without a key. The GRPO training itself runs **locally on the GPU**.
 
 ## Running the customized agent outside the notebook
 `cd code/4-agent-customization && python3.12 -m bash_agent.main_hf` starts the same combined
-agent as `03_run_agent.ipynb` (hosted planner + the fine-tuned model as `langgraph_cli`). Add
+agent as `03_run_agent.ipynb` (planner + the fine-tuned model as `langgraph_cli`; on one DGX
+Spark the local 27B planner and the 9B do not fit in memory together). Add
 `--cli-only` to run the fine-tuned model alone (one request → one LangGraph command), and
 `--model-path` to load a different export. Free the GPU from the training kernel first.
 

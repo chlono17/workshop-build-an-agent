@@ -1,4 +1,13 @@
-<div class="dx-hero" data-eyebrow="MODULE 04 / 04 - GRPO TRAINING" data-title="GRPO Training" data-meta="TIME::75 min|EXERCISES::3|GPU::A100-80GB+"></div>
+<div class="dx-hero" data-eyebrow="MODULE 04 / 04 - GRPO TRAINING" data-title="GRPO Training" data-meta="TIME::75 min|EXERCISES::3|GPU::A100-80GB+ or DGX Spark (27B stopped)"></div>
+
+> **DGX Spark (local-first fork): stop the 27B before training.** The Spark has 128 GB of unified memory shared by CPU and GPU, and the local chat model (Qwen3.8 27B) keeps about 114 GB of it while it runs. Training the 9B needs about 45 GB, so the two do not fit together.
+>
+> 1. Do everything that needs the chat model first: `bash_agent.ipynb` (the starter agent) and `01_synthetic_data_generation.ipynb` (SDG). Both call the 27B through the local gateway.
+> 2. **Stop it:** NVIDIA Sync → Models → **Stop** on the 27B; wait until it shows as stopped. While it is stopped, chat calls and Workshop Health's endpoint checks fail; that is expected.
+> 3. Start the reward server and run `02_grpo_training.ipynb`. Its first code cell checks free memory and whether the 27B is still loaded (read-only). The first run downloads the base model (about 18 GB) from Hugging Face, which needs internet once.
+> 4. **Start it again** when training and export are done: shut down the training kernel, then NVIDIA Sync → Models → **Start**, and wait until Workshop Health's endpoint checks pass.
+>
+> GRPO training with unsloth on the Spark's GB10 (aarch64, compute capability 12.1) has not been verified in this fork yet. The combined agent in `03_run_agent.ipynb` needs the 27B and the fine-tuned 9B at the same time, which does not fit; see [Run Your Customized Agent](run_customized.md).
 
 You have your dataset. Now how do you teach the model with it?
 
@@ -350,7 +359,7 @@ Run the training cell. Runtime depends on GPU, generation length, and the number
 
 > Use a GPU with enough **free** memory for the model, optimizer and rollouts. Check memory availability before starting; lower batch size or generation length if needed.
 
-After constructing the trainer, run the training cell once. It first scores the base 9B with its LoRA adapters disabled, then calls `trainer.train()`. The following comparison cell scores the trained version on the same held-out rows, system prompt, greedy decoding and answer-length budget. Read `outputs/grpo_langgraph_cli/held_out_comparison.json` for successes and regressions; improvement is not guaranteed. The earlier hosted starter agent is a different model, so it is not this baseline.
+After constructing the trainer, run the training cell once. It first scores the base 9B with its LoRA adapters disabled, then calls `trainer.train()`. The following comparison cell scores the trained version on the same held-out rows, system prompt, greedy decoding and answer-length budget. Read `outputs/grpo_langgraph_cli/held_out_comparison.json` for successes and regressions; improvement is not guaranteed. The earlier starter agent (the 27B in this fork; a hosted model upstream) is a different model, so it is not this baseline.
 
 After the save cell, the customized model should appear in: `outputs/grpo_langgraph_cli/merged_model/`.
 
