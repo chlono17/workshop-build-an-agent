@@ -14,7 +14,7 @@ We chose this agent use case for customization because:
 
 <div class="dx-bento dx-reveal">
   <div class="dx-cell is-wide"><h4>OBSERVABLE OUTPUTS</h4>Shell commands are concrete and verifiable - we can objectively check if <code>langgraph new --template react-agent-python</code> is correct (unlike creative writing).</div>
-  <div class="dx-cell"><h4>CLEAR TARGET</h4>Observe the hosted starter agent, then measure training against the same local 9B model.</div>
+  <div class="dx-cell"><h4>CLEAR TARGET</h4>Observe the starter agent (the local 27B in this fork), then measure training against the same local 9B model.</div>
   <div class="dx-cell"><h4>REAL-WORLD</h4>Many developers want agents that understand their specific CLIs, APIs, and toolchains.</div>
 </div>
 
@@ -251,6 +251,6 @@ Now that we've built our baseline bash agent, let's measure its command accuracy
   </ul>
 </div>
 
-Record which commands the hosted baseline gets right. Training may improve the local model's CLI outputs; the training notebook compares that model's held-out results before and after training.
+Record which commands the starter baseline (the 27B here) gets right. Training may improve the local model's CLI outputs; the training notebook compares that model's held-out results before and after training.
 
 Now let's take a look at [Synthetic Data Generation](sdg.md) to get started with the customization pipeline.

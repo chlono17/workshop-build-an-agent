@@ -89,7 +89,11 @@ code.** Steps:
   writable canary and operator evidence before attributing the result to Landlock.
 
 ## Inference / credentials / secrets
-- `secrets.env` (repo root) needs **`NVIDIA_API_KEY`** (the gateway's Provider record + the judge).
+- Local-first fork: `secrets.env` needs `SPARK_LLM_API_KEY` (the Spark model key); the installer
+  passes it to onboarding as `COMPATIBLE_API_KEY` and the judge uses the local gateway. If
+  onboarding rejects the private endpoint, check `NEMOCLAW_TRUSTED_PRIVATE_HOSTS` and that the
+  Model Launcher is in LAN mode; fall back to hosted mode if needed.
+- Hosted mode: `secrets.env` (repo root) needs **`NVIDIA_API_KEY`** (the gateway's Provider record + the judge).
 - Check whether `NVIDIA_API_KEY` is absent without printing secrets. `OPENCLAW_GATEWAY_TOKEN`
   authenticates OpenClaw clients; it is not a vendor inference key.
 - `inference.local` errors can come from provider credentials, a retired model, or the upstream

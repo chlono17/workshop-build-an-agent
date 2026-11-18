@@ -153,7 +153,12 @@ Full reference + the workshop's framing in `references/concepts.md`. Essentials:
 - **`references/quizzes.md`** — deeper "Check Your Understanding" feedback (incl. the Privacy Router one).
 
 ## Environment & hardware
-**No GPU required for the main path** — the agent and judge use hosted inference.
+**Local-first fork:** the judge uses the local gateway (Qwen3.8 27B on the Spark), and
+`install-nemoclaw.sh` prints the values to route the sandbox to the Spark's Model Launcher
+("Other OpenAI-compatible endpoint", `http://<Docker host IP>:18765/v1`, Spark model key as
+`COMPATIBLE_API_KEY`); that route is not yet verified live, and hosted mode remains the fallback.
+On a single Spark `chat` and `fast_chat` are the same model, so Exercise 5's model swap shows
+no visible change. Upstream: **No GPU required for the main path** — the agent and judge use hosted inference.
 The live sandbox needs Docker and a Linux kernel with the Landlock support required by
 its OpenShell version; kernel version alone does not establish support. A local model
 backend is optional. The Python safety exercises run on CPU with the mock agent and

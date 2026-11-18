@@ -17,7 +17,10 @@ signal of an untouched blank (guide via `exercises.md`), **not** a bug to fix fo
 - `--exercise 5` raises in `self_evolve_skill` → Ex 5 unfilled.
 
 ## Keys, imports, dependencies
-- **`NVIDIA_API_KEY`** in repo-root `secrets.env` (gitignored) — the core lab and configured Hermes calls use
+- **Local-first fork:** the core lab's `ChatNVIDIA` calls go to the local gateway
+  (`NVIDIA_BASE_URL` in `variables.env`); no NVIDIA key. `cl100k_base` is pre-cached via
+  `TIKTOKEN_CACHE_DIR` (postBuild); the verified-skill install still needs GitHub once.
+- Hosted mode: **`NVIDIA_API_KEY`** in repo-root `secrets.env` (gitignored) — the core lab and configured Hermes calls use
   `nvidia/nemotron-3.5-super-vl-120b-a12b` through `integrate.api.nvidia.com`. **401** → key
   missing/invalid (set it via the Secrets Manager / https://build.nvidia.com).
 - **`ModuleNotFoundError: tiktoken`** (Ex 2) or `langchain_nvidia_ai_endpoints` → install the
@@ -30,7 +33,10 @@ Hermes is one option; the **Module 6 OpenClaw** agent works too — the point is
 harness, not a specific one.
 - **Install:** `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`, then
   `hermes setup` → choose **Custom OpenAI-compatible endpoint**.
-- **Point it at Nemotron** (`~/.hermes/config.yaml`): `provider: custom`,
+- **Local-first fork:** point it at the local gateway instead: `provider: custom`,
+  `default: nvidia/Qwen3.8-27B-NVFP4`, `base_url: http://local-gateway:8000/v1`,
+  `api_key: local-spark` (placeholder; the gateway adds the Spark key). Not yet verified live.
+- **Hosted mode — point it at Nemotron** (`~/.hermes/config.yaml`): `provider: custom`,
   `default: nvidia/nemotron-3.5-super-vl-120b-a12b`, `base_url: https://integrate.api.nvidia.com/v1`,
   `api_key: ${NVIDIA_API_KEY}`.
 - **"Hermes can't reach the model" / auth errors** → the `base_url` is missing `/v1`, the

@@ -77,7 +77,8 @@ For this workshop, we'll use **Synthetic Data Generation** with **NVIDIA NeMo Da
 We recommend generating your own datasets using the notebooks above to get hands-on experience with the synthetic data generation process. However, if you're running into issues or want to move ahead quickly, we've provided starter datasets you can use:
 
 - <button onclick="openOrCreateFileInJupyterLab('data/evaluation/rag_agent_test_cases.json');"><i class="fa-brands fa-python"></i> RAG Agent Test Cases</button> - 12 IT help desk questions across common categories
-- <button onclick="openOrCreateFileInJupyterLab('data/evaluation/report_agent_test_cases.json');"><i class="fa-brands fa-python"></i> Report Agent Test Cases</button> - 6 report topics with quality criteria
+- <button onclick="openOrCreateFileInJupyterLab('data/evaluation/report_agent_test_cases.json');"><i class="fa-brands fa-python"></i> Report Agent Test Cases</button> - 6 report topics with quality criteria (web topics; used with `WORKSHOP_SEARCH=tavily`)
+- <button onclick="openOrCreateFileInJupyterLab('data/evaluation/report_agent_local_test_cases.json');"><i class="fa-brands fa-python"></i> Report Agent Test Cases (local)</button> - 6 IT knowledge-base report topics, used by default in this local-first fork
 
 The generators save candidates for review. Inspect each source and reference, record the CASE numbers you accept (as printed by the QA cell) in `reviewed_indices`, and rerun the save cell. Evaluation uses the reviewed subset; until then, it falls back to these starter datasets.
 

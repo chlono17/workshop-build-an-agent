@@ -1,8 +1,17 @@
-<div class="dx-hero" data-eyebrow="MODULE 04 / AGENT CUSTOMIZATION" data-title="Agent Customization Workshop" data-meta="DURATION::3-4 hrs|MODEL::Nemotron Nano 9B (GRPO-trained)|GPU::A100-80GB+ recommended"></div>
+<div class="dx-hero" data-eyebrow="MODULE 04 / AGENT CUSTOMIZATION" data-title="Agent Customization Workshop" data-meta="DURATION::3-4 hrs|MODEL::Nemotron Nano 9B (GRPO-trained)|GPU::A100-80GB+ or DGX Spark (27B stopped)"></div>
 
 The Agent Customization Workshop teaches you how to **customize AI agents for specific domains** using NVIDIA technology. You'll transform a generic bash agent into a **LangGraph CLI expert** using Synthetic Data Generation (SDG) and Reinforcement Learning with Verifiable Rewards (RLVR).
 
 > Training needs substantial free GPU memory. A100/H100 80GB is the intended training environment. Full 9B training on a GB10 alongside the workshop's large model service has not been validated; SDG and reward exercises can run without loading the local model.
+
+> **DGX Spark (local-first fork): stop the 27B before training.** The Spark has 128 GB of unified memory shared by CPU and GPU, and the local chat model (Qwen3.8 27B) keeps about 114 GB of it while it runs. Training the 9B needs about 45 GB, so the two do not fit together.
+>
+> 1. Do everything that needs the chat model first: `bash_agent.ipynb` (the starter agent) and `01_synthetic_data_generation.ipynb` (SDG). Both call the 27B through the local gateway.
+> 2. **Stop it:** NVIDIA Sync → Models → **Stop** on the 27B; wait until it shows as stopped. While it is stopped, chat calls and Workshop Health's endpoint checks fail; that is expected.
+> 3. Start the reward server and run `02_grpo_training.ipynb`. Its first code cell checks free memory and whether the 27B is still loaded (read-only). The first run downloads the base model (about 18 GB) from Hugging Face, which needs internet once.
+> 4. **Start it again** when training and export are done: shut down the training kernel, then NVIDIA Sync → Models → **Start**, and wait until Workshop Health's endpoint checks pass.
+>
+> GRPO training with unsloth on the Spark's GB10 (aarch64, compute capability 12.1) has not been verified in this fork yet. The combined agent in `03_run_agent.ipynb` needs the 27B and the fine-tuned 9B at the same time, which does not fit; see [Run Your Customized Agent](run_customized.md).
 
 This workshop demonstrates a **generalizable pattern** that applies to customizing any AI agent. Here's what you're in for:
 

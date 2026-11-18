@@ -77,7 +77,7 @@ Two blanks in the same loop: the result-row fields, then the agent call.
 ### P2 · `evaluate_report_agent.ipynb` cell 10 — record a report case
 - **Goal:** preserve the topic and expected sections in the result row; the prompt and async invocation are provided.
 - **L1:** "Which fields describe the report request and its required structure?"
-- **L2:** "Print one `test_case` (or open `data/evaluation/report_agent_test_cases.json`): its
+- **L2:** "Print one `test_case` (or open the dataset file the notebook printed, e.g. `data/evaluation/report_agent_local_test_cases.json`): its
   keys match the row's key names."
 - **Common mistakes:** using the RAG field `question`, or dropping expected sections.
 - **Target:** `"topic": test_case["topic"], "expected_sections": test_case["expected_sections"]`

@@ -250,7 +250,7 @@ Restart your agent and try these prompts in the <button onclick="launch('Simple 
 | Prompt | Expected Behavior |
 |--------|-------------------|
 | "How do I reset my password?" | Uses knowledge base [KB:source_id] |
-| "What's happening in the news today?" | Uses web search source URLs |
+| "Use web_search to find which document covers distribution lists." | Calls `web_search` (local MCP server) and cites a `file://` URL; in hosted Tavily mode, a news question returns web URLs |
 | "What skills do you have?" | Lists `code-review`, `technical-writing` |
 | "Review this code: `def add(a,b): return a+b`" | Loads code-review skill, gives structured feedback |
 
@@ -262,7 +262,7 @@ Congratulations! Your agent now has:
 
 <div class="dx-island dx-reveal">
   <p><span class="dx-chip is-green">RAG</span> Knowledge base retrieval.</p>
-  <p><span class="dx-chip is-green">MCP</span> Web search via a standardized server.</p>
+  <p><span class="dx-chip is-green">MCP</span> Search via a standardized server (local documents here; the web in hosted mode).</p>
   <p><span class="dx-chip is-green">SKILLS</span> Dynamic, loadable expertise.</p>
 </div>
 
@@ -271,3 +271,5 @@ Skills and MCP together represent the future of agent development — agents tha
 ## Operations Ready
 
 Our agent is now ready for day 2 operations. To control costs, we would like to run our own models before going to production. Let's explore how we can do that in [Migrate to Local NIM](migrate.md).
+
+> **Local-first fork:** your agent already runs on your own models on the DGX Spark, so [Migrate to Local NIM](migrate.md) is optional. You can go straight to Module 3.

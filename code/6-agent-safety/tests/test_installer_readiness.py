@@ -108,7 +108,7 @@ def test_fresh_request_bypasses_ready_fast_path(tmp_path):
 
 def run_installer(tmp_path, status, code, download_code=22, after_status=None,
                   base_override=None, gateway_bind=None,
-                  runtime_version='2026.5.22', fresh=False):
+                  runtime_version='2026.5.22', fresh=False, extra_env=None):
     # Relocate only the two log files; all branching and commands are unchanged.
     source = SCRIPT.read_text().replace('LOG=/tmp/nemoclaw-install.log', f'LOG={tmp_path}/install.log')
     source = source.replace('TUNNEL_LOG=/tmp/nemoclaw-tunnel.log', f'TUNNEL_LOG={tmp_path}/tunnel.log')
@@ -147,6 +147,8 @@ if name=='curl':
     with open(os.environ['AUDIT_COMMANDS'],'a') as out:
         out.write('base='+os.environ.get('NEMOCLAW_SANDBOX_BASE_IMAGE_REF','')+'\\n')
         out.write('gpu='+os.environ.get('NEMOCLAW_SANDBOX_GPU','')+'\\n')
+        out.write('compat_key='+('set' if os.environ.get('COMPATIBLE_API_KEY') else 'unset')+'\\n')
+        out.write('trusted='+os.environ.get('NEMOCLAW_TRUSTED_PRIVATE_HOSTS','')+'\\n')
     if os.environ['AUDIT_DOWNLOAD_CODE']=='0':
         print('mkdir "$AUDIT_BUILD_DIR"; printf "{}" > "$AUDIT_BUILD_DIR/package.json"')
     sys.exit(int(os.environ['AUDIT_DOWNLOAD_CODE']))
@@ -165,6 +167,9 @@ if name=='curl':
                AUDIT_BUILD_DIR=str(tmp_path / 'build'), AUDIT_RUNTIME_VERSION=runtime_version)
     if fresh:
         env['NEMOCLAW_FRESH'] = '1'
+    for name in ('NVIDIA_BASE_URL', 'COMPATIBLE_API_KEY', 'NEMOCLAW_TRUSTED_PRIVATE_HOSTS', 'WORKSHOP_SECRETS_FILE'):
+        env.pop(name, None)
+    env.update(extra_env or {})
     if after_status is not None:
         env['AUDIT_AFTER_STATUS'] = after_status
     if base_override is not None:
@@ -174,3 +179,23 @@ if name=='curl':
     result = subprocess.run(['bash', str(script)], cwd=tmp_path, env=env,
                             capture_output=True, text=True, timeout=10, umask=0o077)
     return result, command_log.read_text()
+
+
+def test_local_mode_prepares_the_spark_model_route_without_printing_the_key(tmp_path):
+    """Local-first fork: the Spark model key reaches onboarding through the environment only."""
+    secrets = tmp_path / 'secrets.env'
+    secrets.write_text('SPARK_LLM_API_KEY=spark-secret-value\n')
+    result, calls = run_installer(tmp_path, 'Phase: Pending\n', 0, extra_env={
+        'NVIDIA_BASE_URL': 'http://local-gateway:8000/v1', 'WORKSHOP_SECRETS_FILE': str(secrets)})
+    assert 'Other OpenAI-compatible endpoint' in result.stdout
+    assert ':18765/v1' in result.stdout
+    assert 'compat_key=set' in calls
+    assert 'trusted=' in calls and 'trusted=\n' not in calls
+    log = (tmp_path / 'install.log').read_text()
+    assert 'spark-secret-value' not in result.stdout + result.stderr + log + calls
+
+
+def test_hosted_mode_installer_is_unchanged(tmp_path):
+    result, calls = run_installer(tmp_path, 'Phase: Pending\n', 0)
+    assert 'Other OpenAI-compatible endpoint' not in result.stdout
+    assert 'compat_key=unset' in calls and 'trusted=\n' in calls

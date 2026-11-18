@@ -1,11 +1,11 @@
-<div class="dx-hero" data-eyebrow="MODULE 05 / DEEP AGENTS" data-title="Deep Agents Workshop" data-meta="DURATION::1-2 hrs|MODEL::Nemotron 3.5 Super VL|GPU::Hosted API endpoint"></div>
+<div class="dx-hero" data-eyebrow="MODULE 05 / DEEP AGENTS" data-title="Deep Agents Workshop" data-meta="DURATION::1-2 hrs|MODEL::Qwen3.8 27B (local)|GPU::DGX Spark, local endpoint"></div>
 
 In Modules 1 through 4, you built agents that reason, call tools, retrieve knowledge, and even execute shell commands. In this module, you'll combine those building blocks into **deep agents** — autonomous systems that can plan, code, execute, delegate, and self-manage. These are the same architectural patterns behind products like deep research assistants and AI coding agents. You'll build a deep agent with explicit permissions using NVIDIA models, secure it with Docker sandboxing, and understand the architecture that makes it all work.
 
 <div class="dx-bento dx-reveal">
   <div class="dx-cell is-wide is-tall"><h4>YOU WILL BUILD</h4><span class="dx-big">A learning deep agent</span>Planning, file I/O, shell execution, and sub-agent delegation - then bounded by explicit tool permissions and Docker sandboxing.</div>
   <div class="dx-cell"><h4>DURATION</h4><span class="dx-big">1-2 h</span>self-paced</div>
-  <div class="dx-cell"><h4>BUILT WITH</h4>deepagents - LangGraph - NVIDIA Nemotron</div>
+  <div class="dx-cell"><h4>BUILT WITH</h4>deepagents - LangGraph - a local model on the DGX Spark</div>
   <div class="dx-cell"><h4>YOU'LL TAKE HOME</h4>The four pillars of deep agents and the patterns for running them safely.</div>
 </div>
 

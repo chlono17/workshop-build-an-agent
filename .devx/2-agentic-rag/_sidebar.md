@@ -4,4 +4,4 @@
 * [Running Your Agent](running.md)
 * [Implementing MCP](mcp.md)
 * [Agent Skills](skills.md)
-* [Migrate to Local NIM](migrate.md)
+* [Migrate to Local NIM (optional)](migrate.md)

@@ -71,7 +71,9 @@ def cells_from_py(py_path: Path):
     cells = [md(f"# {title}{' (Answers)' if answers else ''}\n\n"
                "Complete the exercises in order. Docs: open the **7. Agent Harnesses** "
                f"launcher for the guided walkthrough.{intro_extra}\n\n"
-               "> Needs `NVIDIA_API_KEY` — set it once with the Secrets Manager; "
+               "> Local-first fork: model calls go to the local gateway on the DGX Spark "
+               "(`NVIDIA_BASE_URL` in `variables.env`), so no NVIDIA key is needed. Hosted mode "
+               "needs `NVIDIA_API_KEY` — set it once with the Secrets Manager; "
                "the setup cell below loads it from `secrets.env`.")]
 
     chunks = banner.split(source)

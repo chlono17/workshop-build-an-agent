@@ -1,0 +1,128 @@
+[
+  {
+    "topic": "Working Remotely at Company LLC: VPN and Virtual Desktop Access",
+    "expected_sections": [
+      "Introduction",
+      "Connecting to the VPN",
+      "Requesting a Virtual Desktop",
+      "Troubleshooting Common Problems",
+      "Conclusion"
+    ],
+    "quality_criteria": {
+      "should_include": [
+        "the VPN connection steps from the knowledge base, including multi-factor authentication",
+        "the virtual desktop types or eligibility described in the knowledge base",
+        "where to get help when a connection fails"
+      ],
+      "should_avoid": [
+        "server names, settings or limits that do not appear in the knowledge base",
+        "advice about consumer VPN products"
+      ]
+    }
+  },
+  {
+    "topic": "Account Security for Employees: Password Resets and Reporting Security Incidents",
+    "expected_sections": [
+      "Introduction",
+      "Resetting a Password",
+      "Password Policy",
+      "Recognizing and Reporting a Security Incident",
+      "Conclusion"
+    ],
+    "quality_criteria": {
+      "should_include": [
+        "the self-service password reset procedure",
+        "the password requirements stated in the policy",
+        "the immediate steps to take after a suspected security incident"
+      ],
+      "should_avoid": [
+        "password rules that differ from the company policy",
+        "industry statistics that are not in the retrieved documents"
+      ]
+    }
+  },
+  {
+    "topic": "Getting the Right Tools: Software Installation and Hardware Refresh Requests",
+    "expected_sections": [
+      "Introduction",
+      "Installing Approved Software",
+      "Requesting Non-Standard Software",
+      "Requesting a Hardware Refresh",
+      "Conclusion"
+    ],
+    "quality_criteria": {
+      "should_include": [
+        "the difference between self-service and requested software",
+        "the eligibility conditions for a hardware refresh",
+        "the IT Service Portal path for submitting requests"
+      ],
+      "should_avoid": [
+        "approval times or prices that are not in the knowledge base",
+        "recommending specific commercial products"
+      ]
+    }
+  },
+  {
+    "topic": "How to Get Help from IT: Support Channels and Issue Priorities",
+    "expected_sections": [
+      "Introduction",
+      "Support Channels",
+      "Self-Service Options",
+      "How Issues Are Prioritized",
+      "Conclusion"
+    ],
+    "quality_criteria": {
+      "should_include": [
+        "the primary support channels and when to use each",
+        "self-service options such as the knowledge base and automated password reset",
+        "how issue priority affects response"
+      ],
+      "should_avoid": [
+        "phone numbers, hours or response times that are not in the knowledge base",
+        "generic help desk advice not tied to the company's documents"
+      ]
+    }
+  },
+  {
+    "topic": "Developer Resources at Company LLC: Source Control and HPC Cluster Access",
+    "expected_sections": [
+      "Introduction",
+      "Source Control Systems",
+      "Getting a Git Account",
+      "Requesting HPC Cluster Access",
+      "Conclusion"
+    ],
+    "quality_criteria": {
+      "should_include": [
+        "the primary and legacy source control systems the company supports",
+        "the account setup steps for Git access",
+        "who is eligible for HPC cluster access and how to request it"
+      ],
+      "should_avoid": [
+        "cluster sizes or quotas that do not appear in the retrieved documents",
+        "a tutorial on Git commands unrelated to company procedures"
+      ]
+    }
+  },
+  {
+    "topic": "Staying Connected in the Office: WiFi Networks and Email Distribution Lists",
+    "expected_sections": [
+      "Introduction",
+      "Available WiFi Networks",
+      "Connecting a Device",
+      "Requesting an Email Distribution List",
+      "Conclusion"
+    ],
+    "quality_criteria": {
+      "should_include": [
+        "the difference between corporate, BYOD and guest networks",
+        "the types of distribution lists the company offers",
+        "the request procedure for a new distribution list"
+      ],
+      "should_avoid": [
+        "network passwords or settings that are not in the knowledge base",
+        "general networking theory unrelated to the company's networks"
+      ]
+    }
+  }
+]

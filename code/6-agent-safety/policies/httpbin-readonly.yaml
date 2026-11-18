@@ -186,6 +186,9 @@ network_policies:
     - path: /usr/local/bin/yarn*
     - path: /usr/bin/npm*
     - path: /usr/bin/node*
+  # Preset from a hosted-inference install. With the local-first fork's custom endpoint the
+  # agent still reaches its model only via managed_inference (inference.local); copy your own
+  # active policy as the lesson describes instead of applying this file as is.
   nvidia:
     name: nvidia
     endpoints:

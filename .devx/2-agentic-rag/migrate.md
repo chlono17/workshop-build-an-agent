@@ -1,4 +1,12 @@
-<div class="dx-hero" data-eyebrow="MODULE 02 / 06 - LOCAL NIM" data-title="Migrate to Local NIM Microservices" data-meta="TIME::30 min|EXERCISES::3|GPU::local NIM (Nano)"></div>
+<div class="dx-hero" data-eyebrow="MODULE 02 / 06 - LOCAL NIM" data-title="Migrate to Local NIM Microservices" data-meta="OPTIONAL::skip in this fork|TIME::30 min|EXERCISES::3|GPU::local NIM (Nano)"></div>
+
+> **Optional — you can skip this lesson in the local-first fork.** Your agent already runs entirely on the DGX Spark: chat (Qwen3.8 27B), embeddings and reranking all go through the local gateway, and search is offline. This lesson shows the upstream path from NVIDIA's hosted API Catalog to a local Nemotron NIM, so it adds nothing you need for Modules 3–7.
+>
+> If you still want to try it:
+> - **Stop the 27B first.** The NIM reserves 80% of GPU memory, and the 27B already holds about 114 GB of the Spark's 128 GB unified memory. In **NVIDIA Sync → Models**, press **Stop** on the 27B, wait for it to report stopped, and only then run the setup below. Nothing else in the workshop works while the 27B is stopped.
+> - **It needs the cloud once.** Pulling the NIM image from `nvcr.io` needs an NGC (NVIDIA) API key in Secrets Manager and internet access.
+> - **Undo it afterwards.** Run the `--teardown` step at the end of this page, revert `llm` in `rag_agent.py` to `ChatNVIDIA(model=LLM_MODEL, ...)`, then press **Start** on the 27B in **NVIDIA Sync → Models** and wait until it is ready again (Workshop Health → endpoint checks pass).
+
 
 [NVIDIA's API Catalog](https://build.nvidia.com) is an excellent resource for discovering and evaluating many different Generative AI models. There is a wide breadth of available models, and getting started is free.
 

@@ -111,7 +111,7 @@ python agent_safety.py
 
 This uses the leaky mock and makes no model calls. The weak policy should fail its checks. The hardened policy lets the probes run, but the mock still leaks: **a valid policy file alone cannot make this agent pass**.
 
-Add rubric review when you're ready. This sends each completed mock response to the hosted judge:
+Add rubric review when you're ready. This sends each completed mock response to the judge model (through the local gateway in this fork; NVIDIA's hosted API in hosted mode):
 
 ```bash
 python agent_safety.py --judge

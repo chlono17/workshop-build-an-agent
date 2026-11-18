@@ -69,7 +69,7 @@ If an agent writes a poem or summarizes a document, how do you write a unit test
 We generally rely on three approaches: 
 
 <div class="dx-bento dx-reveal">
-  <div class="dx-cell is-wide"><h4>LLM-AS-A-JUDGE</h4><span class="dx-chip is-green">PRIMARY METHOD</span> An NVIDIA Nemotron model grades outputs against a rubric. Scalable and handles subjective qualities - but adds cost and latency, and can inherit the judge model's biases.</div>
+  <div class="dx-cell is-wide"><h4>LLM-AS-A-JUDGE</h4><span class="dx-chip is-green">PRIMARY METHOD</span> A judge model grades outputs against a rubric (NVIDIA Nemotron upstream; the local Qwen3.8 27B in this fork). Scalable and handles subjective qualities - but adds cost and latency, and can inherit the judge model's biases.</div>
   <div class="dx-cell"><h4>HUMAN EVALUATION</h4>The gold standard for subjective quality - most accurate, but slow, expensive, and not scalable. Used sparingly to grade the grader.</div>
   <div class="dx-cell"><h4>DETERMINISTIC CHECKS</h4>Code-based pass/fail (did the JSON parse? is the keyword present?). Objective and cheap, but misses nuance and valid alternatives.</div>
 </div>
@@ -87,7 +87,7 @@ We generally rely on three approaches:
     <li>If alignment is poor, refine the evaluation prompt or add examples.</li>
   </ol>
   <p>Even a quick spot-check on 5 samples can reveal a judge that is too lenient, too harsh, or misreads your criteria. We'll practice this in the hands-on notebooks.</p>
-  <p><b>Check judge bias.</b> By default, this workshop's judge is the same Nemotron model as the agents it grades, so it may favor that model's own writing. Even different models can share blind spots or prefer particular writing styles, and a judge can claim support that its sources do not contain. The report evaluation therefore checks the judge's quotations in code. Compare judgments with your own source-based ratings, especially when scores look unusually generous.</p>
+  <p><b>Check judge bias.</b> By default, this workshop's judge is the same model as the agents it grades (Qwen3.8 27B on the Spark in this fork), so it may favor that model's own writing. Even different models can share blind spots or prefer particular writing styles, and a judge can claim support that its sources do not contain. The report evaluation therefore checks the judge's quotations in code. Compare judgments with your own source-based ratings, especially when scores look unusually generous.</p>
 </div>
 
 <!-- fold:break -->

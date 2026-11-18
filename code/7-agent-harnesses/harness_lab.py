@@ -37,7 +37,9 @@ TEST_DATA = LAB_DIR / "test_data" / "sensor_readings.csv"
 REPO_ROOT = LAB_DIR.parents[1]
 
 # The Secrets Manager persists keys to <repo>/secrets.env — load them here so
-# terminal runs and notebook kernels both see NVIDIA_API_KEY.
+# terminal runs and notebook kernels both see NVIDIA_API_KEY. Local-first fork:
+# variables.env sets NVIDIA_BASE_URL (the local gateway), which ChatNVIDIA reads,
+# and load_secrets() fills a placeholder key; no NVIDIA key is needed.
 load_dotenv(REPO_ROOT / "variables.env")
 import sys
 sys.path.insert(0, str(REPO_ROOT / "code"))

@@ -172,8 +172,8 @@ test('an unsuccessful open never selects text in another document', async () => 
 
 for (const [lesson, label, cellIndex] of [
     ['sdg', 'template sampler', 9],
-    ['run_customized', 'HuggingFaceLLM', 12],
-    ['run_customized', 'Messages', 16]
+    ['run_customized', 'HuggingFaceLLM', 14],  // local-first fork: +2 Spark memory-check cells
+    ['run_customized', 'Messages', 19]  // local-first fork: +3 Spark memory cells
 ]) {
     test(`the shipped ${label} button targets its editable exercise`, async () => {
         const root = path.join(__dirname, '..');

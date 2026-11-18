@@ -1,4 +1,4 @@
-<div class="dx-hero" data-eyebrow="MODULE 05 / SETUP" data-title="Setting up Secrets" data-meta="NEEDS::NVIDIA + Tavily keys|TIME::3 min"></div>
+<div class="dx-hero" data-eyebrow="MODULE 05 / SETUP" data-title="Setting up Secrets" data-meta="NEEDS::Spark model key (local)|TIME::3 min"></div>
 
 <img src="_static/robots/spyglass.png" alt="Secrets Management Robot" style="float:right; max-width:300px;margin:25px;" />
 
@@ -9,7 +9,13 @@ Use the <button onclick="openVoila('code/secrets_management/secrets_management_5
 <details class="dx-peek is-setup">
 <summary>⚠️ Still Need to Set These? Expand for details!</summary>
 
-## NVIDIA API Key <span class="dx-chip is-green">REQUIRED</span>
+## Spark Model Key <span class="dx-chip is-green">REQUIRED</span>
+
+This fork runs every model locally on the DGX Spark through the local gateway (`NVIDIA_BASE_URL` in `variables.env`). If you saved the **Spark Model Key** in Module 1, it is already set. Otherwise: in **NVIDIA Sync → Models**, set Network access to **LAN** (stop the model first, switch, then start it again) and copy the API key shown there into the **Spark Model Key** field. No cloud account is needed.
+
+> Using the hosted NVIDIA API instead? Remove `NVIDIA_BASE_URL` from `variables.env`; then the NVIDIA key below becomes required.
+
+## NVIDIA API Key <span class="dx-chip">HOSTED MODE ONLY</span>
 
 This key powers the LLM backbone — NVIDIA Nemotron and other models that drive your deep agent's reasoning.
 
@@ -28,7 +34,9 @@ Manage your API Keys from the [NGC console](https://org.ngc.nvidia.com/setup/api
 
 </details>
 
-## Tavily API Key <span class="dx-chip is-green">REQUIRED</span>
+## Tavily API Key <span class="dx-chip">OPTIONAL · WEB SEARCH</span>
+
+Not needed by default: this fork searches the local IT knowledge base (`WORKSHOP_SEARCH=local`). Set `WORKSHOP_SEARCH=tavily` in `variables.env` and add a key only if you want live web search.
 
 Tavily is a search API designed for AI agents. It provides real-time web search capabilities that help agents gather up-to-date information from the internet. We will also need a Tavily API key for this workshop.
 

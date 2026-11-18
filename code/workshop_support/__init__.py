@@ -54,6 +54,27 @@ def get_search_backend() -> str:
     return backend
 
 
+def data_designer_providers():
+    """Model providers for NeMo Data Designer (Modules 3 and 4).
+
+    Data Designer's built-in "nvidia" provider always calls NVIDIA's hosted API.
+    This returns a provider with the same name that uses the workshop endpoint
+    instead: the local gateway in this fork, the hosted API when NVIDIA_BASE_URL is
+    unset. Pass it as DataDesigner(model_providers=data_designer_providers()).
+    """
+    from data_designer.config.models import ModelProvider  # same class essentials exports
+
+    get_api_key()  # make sure NVIDIA_API_KEY holds the local placeholder when needed
+    return [ModelProvider(name="nvidia", endpoint=get_base_url(), provider_type="openai",
+                          api_key="NVIDIA_API_KEY")]  # resolved from the environment
+
+
+# Module 2's MCP server (code/2-agentic-rag/mcp_server.py). Not 8000 (the Module 5
+# backend) or 8001 (the Module 4 reward server), so they can run side by side.
+LOCAL_MCP_PORT = 8002
+LOCAL_MCP_URL = f"http://localhost:{LOCAL_MCP_PORT}/mcp/"
+
+
 def load_secrets(project_root: str | Path | None = None) -> Path:
     """Load saved workshop settings, including key updates and clears."""
     from dotenv import load_dotenv

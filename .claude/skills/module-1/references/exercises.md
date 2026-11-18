@@ -15,8 +15,9 @@ Always start by asking what they've tried, and read the error/output *with* them
 ---
 ## Notebook A — `intro_to_agents.ipynb` ("Agents the Hard Way")
 A from-scratch build whose sections map one-to-one onto the four components. Config
-(cell 5, given): `API_KEY = os.environ["NVIDIA_API_KEY"]`,
-`MODEL_URL = "https://integrate.api.nvidia.com/v1"`,
+(cell 5, given): `API_KEY = get_api_key()`,
+`MODEL_URL = get_base_url()` (local-first fork: the local gateway from `NVIDIA_BASE_URL`;
+NVIDIA's hosted API when that is unset),
 `MODEL_NAME = get_model("chat")` (the shared model registry).
 
 ### A1 · Part 1 / The Model — create the client (cell 7)
@@ -45,7 +46,7 @@ A from-scratch build whose sections map one-to-one onto the four components. Con
 - **Common mistakes:** passing `messages` (it's named `memory` here); passing `MODEL_URL` or `API_KEY` instead of the client object.
 - **Target:** `call_llm(model_client=client, model_name=MODEL_NAME, message_history=memory, tool_list=tools)`
 
-### A4 · Part 4 / Routing — parse the tool request (cell 21)
+### A4 · Part 4 / Routing — parse the tool request (cell 22; cell 21 shows an example `tool_calls` structure)
 - **Goal:** extract name/args/id for each requested tool; `arguments` is a JSON **string**. With no tool calls the provided loop does nothing.
 - **L1:** "Print `llm_response` — the tool call is a nested dict. Where's the function name? The arguments? The id?"
 - **L2:** "Look at how `call_llm` (setup cell) builds each entry of `tool_calls`: an `id`
@@ -54,7 +55,7 @@ A from-scratch build whose sections map one-to-one onto the four components. Con
 - **Common mistakes:** forgetting `json.loads` (args arrive as a string); indexing the wrong nesting level.
 - **Target:** `tool_name = tool_call["function"]["name"]`; `tool_args = json.loads(tool_call["function"]["arguments"])`; `tool_id = tool_call["id"]`
 
-### A5 · Part 4 / Routing — execute the tool (cell 24) — *the punchline*
+### A5 · Part 4 / Routing — execute the tool (cell 25) — *the punchline*
 - **Goal:** realize **your code** runs the tool, not the model.
 - **L1:** "You have `tool_args` as a dict of keyword arguments. How do you pass a dict as kwargs into `add`?"
 - **L2:** "Look up 'Unpacking Argument Lists' in the Python tutorial: one operator spreads a
@@ -62,7 +63,7 @@ A from-scratch build whose sections map one-to-one onto the four components. Con
 - **Common mistakes:** `add(tool_args)` (passes the whole dict as one positional arg).
 - **Target:** `tool_out = add(**tool_args)`
 
-### A6 · Part 4 / Routing — append the tool result (cell 27)
+### A6 · Part 4 / Routing — append the tool result (cell 28)
 - **Goal:** feed the result back as a `tool` message so the model can use it next turn.
 - **L1:** "You extracted three values earlier — which belongs in `tool_call_id`? In `name`? And what type must `content` be?"
 - **L2:** "Look at the `tool_results.append(...)` line in the previous cell: the keys it
@@ -70,12 +71,12 @@ A from-scratch build whose sections map one-to-one onto the four components. Con
 - **Common mistakes:** not stringifying `content`; mixing up `id` vs `name`.
 - **Target:** `{"role":"tool","tool_call_id":result["id"],"name":result["name"],"content":str(result["output"])}`
 
-### A7 · Close the loop — call the model again (cell 32)
+### A7 · Close the loop — call the model again (cell 33)
 - **Goal:** see that the second model call is identical to A3 — the loop repeats with the tool result now in memory.
 - **L1:** "The hint says it's the exact same call as before. What did you write in cell 18?"
 - **Target:** same arguments as A3, inside the provided `if tool_results` guard. If another tool is requested, repeat the routing cells; this notebook manually steps the loop.
 
-> **Teaching beat:** after A6, have them inspect `memory` (cell 30). The user
+> **Teaching beat:** after A6, have them inspect `memory` (cell 31). The user
 > message, the assistant's tool *request*, and the tool *result* are all there —
 > that list **is** short-term memory and the ReAct trace.
 

@@ -95,7 +95,21 @@ Run the wizard and choose the **Custom OpenAI-compatible endpoint** option:
 hermes setup
 ```
 
-When prompted, enter the NVIDIA endpoint, model, and your key — or skip the wizard and write `~/.hermes/config.yaml` directly:
+When prompted, enter the endpoint, model, and key — or skip the wizard and write `~/.hermes/config.yaml` directly.
+
+**Local-first fork** (the same local gateway your minimal harness uses; the gateway adds the Spark model key itself, so the key here is only a non-empty placeholder):
+
+```yaml
+model:
+  provider: custom
+  default: nvidia/Qwen3.8-27B-NVFP4
+  base_url: http://local-gateway:8000/v1
+  api_key: local-spark
+```
+
+The Hermes installer itself downloads from the internet once. *Hermes against the local gateway is not yet verified in this fork.*
+
+**Hosted mode** (NVIDIA's API):
 
 ```yaml
 model:
@@ -115,7 +129,7 @@ Now run `hermes` and type the identical request. Compare completion, tool result
 
 ## Exercise 2 — Measure the Context Tax
 
-Measure the two bundled harness configurations with `cl100k_base`. These prompt-and-schema estimates are a comparison proxy, not Nemotron billing counts. Complete the tax meter and both halves of the lazy loader.
+Measure the two bundled harness configurations with `cl100k_base`. These prompt-and-schema estimates are a comparison proxy, not Nemotron billing counts. Complete the tax meter and both halves of the lazy loader. (The `cl100k_base` tokenizer file is cached at build time in this fork, via `TIKTOKEN_CACHE_DIR`, so this step works offline; on an image built before that change, tiktoken downloads it once.)
 
 ### 2a — `harness_overhead`: estimate the starting context
 
@@ -265,6 +279,8 @@ First, fetch and **verify** the `accelerated-computing-cudf` skill before trusti
 ```bash
 bash code/7-agent-harnesses/scripts/install_nvidia_skill.sh accelerated-computing-cudf
 ```
+
+> **Local-first fork:** this step clones `github.com/NVIDIA/skills`, so it needs internet access once; the skill then runs locally. There is no offline copy of the signed catalog in this repo.
 
 The script clones [NVIDIA/skills](https://github.com/NVIDIA/skills), checks the skill's `skill.oms.sig` signature, shows you the skill card, and installs it into your lab `skills/` directory. Then open a <button onclick="openNewTerminal();"><i class="fas fa-terminal"></i>terminal</button> and start the GPU watch:
 

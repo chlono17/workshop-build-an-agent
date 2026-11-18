@@ -1,17 +1,23 @@
-<div class="dx-hero" data-eyebrow="MODULE 06 / SETUP" data-title="Setting up Secrets" data-meta="NEEDS::NVIDIA API key|TIME::2 min"></div>
+<div class="dx-hero" data-eyebrow="MODULE 06 / SETUP" data-title="Setting up Secrets" data-meta="NEEDS::Spark model key (local)|TIME::2 min"></div>
 
 <img src="_static/robots/spyglass.png" alt="Secrets Management Robot" style="float:right;max-width:300px;margin:25px;" />
 
-Before diving into agent safety, let's make sure you have the API key you need for this module. The agents we work with in this module run on NVIDIA's models, so you'll need your NVIDIA API Key ready.
+Before diving into agent safety, let's make sure you have the API key you need for this module. The agents we work with in this module run on NVIDIA's models, so you'll need your NVIDIA API Key ready (hosted mode). In this local-first fork they run on the Spark's own model, so the Spark Model Key is all you need.
 
 If you've already set this up in an earlier module, you're good to go — skip straight to the next page.
 
 Use the <button onclick="openVoila('code/secrets_management/secrets_management_6.ipynb');"><i class="fas fa-key"></i> Secrets Manager</button> to set up your API Keys. You can also launch the Secrets Manager directly from the Jupyterlab launcher.
 
-<details class="dx-peek is-setup">
-<summary>Still need to set up your NVIDIA API Key? Expand for details.</summary>
+## Spark Model Key <span class="dx-chip is-green">REQUIRED</span>
 
-## NVIDIA API Key <span class="dx-chip is-green">REQUIRED</span>
+This fork runs every model locally on the DGX Spark through the local gateway (`NVIDIA_BASE_URL` in `variables.env`). If you saved the **Spark Model Key** in Module 1, it is already set. Otherwise: in **NVIDIA Sync → Models**, set Network access to **LAN** (stop the model first, switch, then start it again) and copy the API key shown there into the **Spark Model Key** field. No cloud account is needed.
+
+> Using the hosted NVIDIA API instead? Remove `NVIDIA_BASE_URL` from `variables.env`; then the NVIDIA key below becomes required.
+
+<details class="dx-peek is-setup">
+<summary>Hosted mode only: still need to set up your NVIDIA API Key? Expand for details.</summary>
+
+## NVIDIA API Key <span class="dx-chip">HOSTED MODE ONLY</span>
 
 This key powers the LLM judge that evaluates your agent's safety across constraint adherence, data protection, and injection resistance. It uses NVIDIA Nemotron for scoring.
 
@@ -32,4 +38,4 @@ Manage your API Keys from the [NGC console](https://org.ngc.nvidia.com/setup/api
 
 </details>
 
-With your NVIDIA API key configured, you're all set to start exploring agent safety. Head over to [The Autonomous Agent Problem](intro_agent_safety) to understand why the guardrails from previous modules aren't enough.
+With your Spark Model Key (or, in hosted mode, your NVIDIA API key) configured, you're all set to start exploring agent safety. Head over to [The Autonomous Agent Problem](intro_agent_safety) to understand why the guardrails from previous modules aren't enough.

@@ -40,6 +40,8 @@ The install script automatically starts the setup wizard. Use the arrow keys and
 
 1. **Security warning** — Read the notice. **No** is preselected: press the left arrow to select **Yes**, then Enter.
 2. **Setup mode** — Select **QuickStart** (uses default gateway settings: port 18789, loopback bind, token auth)
+> **Local-first fork:** use the local gateway instead of NVIDIA's hosted API. In step 3 enter **API Base URL** `http://local-gateway:8000/v1`, any non-empty **API Key** such as `local-spark` (the gateway adds the Spark model key itself; this placeholder is not a secret), and **Model ID** `nvidia/Qwen3.8-27B-NVFP4` (the value of `WORKSHOP_CHAT_MODEL` in `variables.env`). The wizard then proposes a different **Endpoint ID** than the one below; write it down, because Step 4 uses it. The hosted values below are for hosted mode. *Not yet verified on a live Spark.*
+
 3. **Model/auth provider** — Select **More…**, then type `Custom` and select **Custom Provider**. Then enter:
    - **API Base URL**: `https://integrate.api.nvidia.com/v1`
    - **How do you want to provide this API key?**: **Paste API key now**
@@ -102,6 +104,8 @@ grep -qxF 'export PATH="$HOME/.npm-global/bin:$PATH"' ~/.bashrc \
   || echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.bashrc
 export PATH="$HOME/.npm-global/bin:$PATH"
 
+# Local-first fork: replace custom-integrate-api-nvidia-com with the Endpoint ID the wizard
+# showed for http://local-gateway:8000/v1 (list them with: openclaw config get models.providers).
 openclaw config set models.providers.custom-integrate-api-nvidia-com.models.0.contextWindow 131072
 
 # Verify: should print a path to openclaw, then 131072

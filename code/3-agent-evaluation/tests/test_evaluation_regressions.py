@@ -193,23 +193,72 @@ def test_rate_limit_retries_wait_and_preserve_the_original_failure(monkeypatch):
     assert len(calls) == 4 and delays == [10, 20, 40]
 
 
-def test_mcp_credentials_do_not_enter_urls_argv_or_error_messages():
+def _mcp_exercise(namespace):
+    """Run the answer key's MCP settings, MCP_CONFIG and web_search in `namespace`."""
     import ast
-    import asyncio
-    from langchain_core.tools import tool
-    secret = "test-credential-must-not-be-visible"
     source = ast.parse((CODE_DIR / "2-agentic-rag/rag_agent.answers.py").read_text())
     nodes = [node for node in source.body
              if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "MCP_CONFIG" for t in node.targets)
-             or isinstance(node, ast.AsyncFunctionDef) and node.name == "web_search"]
+             or isinstance(node, ast.AsyncFunctionDef) and node.name == "web_search"
+             # The mode switch that sets MCP_URL / MCP_HEADERS (local-first fork).
+             or isinstance(node, ast.If) and "MCP_URL" in ast.unparse(node)]
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), "<MCP exercise>", "exec"), namespace)
+    return namespace
+
+
+@pytest.mark.parametrize("backend", ["tavily", "local"])
+def test_mcp_credentials_do_not_enter_urls_argv_or_error_messages(backend):
+    import asyncio
+    from langchain_core.tools import tool
+    secret = "test-credential-must-not-be-visible"
     class FailingClient:
         def __init__(self, config):
             raise RuntimeError("Transport error with credential " + secret)
-    namespace = {"TAVILY_API_KEY": secret, "tool": tool, "MultiServerMCPClient": FailingClient}
-    exec(compile(ast.Module(body=nodes, type_ignores=[]), "<MCP exercise>", "exec"), namespace)
+    namespace = _mcp_exercise({"TAVILY_API_KEY": secret, "tool": tool, "MultiServerMCPClient": FailingClient,
+                               "SEARCH_BACKEND": backend, "LOCAL_MCP_URL": "http://localhost:8002/mcp/",
+                               "LOCAL_MCP_PORT": 8002})
     connection = namespace["MCP_CONFIG"]["tavily"]
+    assert connection["transport"] == "streamable_http"
     assert secret not in connection["url"]
     assert "args" not in connection and "command" not in connection
-    assert connection["headers"]["Authorization"] == "Bearer " + secret
+    if backend == "tavily":
+        assert connection["url"] == "https://mcp.tavily.com/mcp/"
+        assert connection["headers"]["Authorization"] == "Bearer " + secret
+    else:
+        # Local-first fork: the local MCP server needs no key, so none is sent.
+        assert connection["url"] == "http://localhost:8002/mcp/"
+        assert connection["headers"] == {}
     output = asyncio.run(namespace["web_search"].ainvoke({"query": "query"}))
     assert secret not in output and "RuntimeError" in output
+    if backend == "local":
+        assert "uvicorn mcp_server:app --port 8002" in output
+
+
+def test_local_report_dataset_is_used_with_local_search(tmp_path, monkeypatch):
+    """Local-first fork: report cases must be answerable from the IT knowledge base."""
+    (tmp_path / "report_agent_test_cases.json").write_text("[]")
+    (tmp_path / "report_agent_local_test_cases.json").write_text("[]")
+    monkeypatch.setenv("WORKSHOP_SEARCH", "local")
+    assert select_dataset(tmp_path, "report_agent").name == "report_agent_local_test_cases.json"
+    # Reviewed synthetic cases made for web search do not fit the local knowledge base.
+    generated = tmp_path / "synthetic_report_agent_test_cases.json"
+    generated.write_text(json.dumps([{"review_status": "reviewed"}]))
+    assert select_dataset(tmp_path, "report_agent").name == "report_agent_local_test_cases.json"
+    generated.write_text(json.dumps([{"review_status": "reviewed", "search_backend": "local"}]))
+    assert select_dataset(tmp_path, "report_agent") == generated
+    monkeypatch.setenv("WORKSHOP_SEARCH", "tavily")
+    generated.unlink()
+    assert select_dataset(tmp_path, "report_agent").name == "report_agent_test_cases.json"
+
+
+def test_shipped_local_report_cases_are_well_formed():
+    cases = json.loads((CODE_DIR.parent / "data/evaluation/report_agent_local_test_cases.json").read_text())
+    assert len(cases) >= 5
+    for case in cases:
+        assert case["topic"] and 4 <= len(case["expected_sections"]) <= 7
+        assert case["quality_criteria"]["should_include"] and case["quality_criteria"]["should_avoid"]
+
+
+def test_search_evidence_reads_the_report_agents_search_tool():
+    state = {"messages": [ToolMessage(content="excerpt", tool_call_id="1", name="search_tavily")]}
+    assert search_evidence(state) == "excerpt"

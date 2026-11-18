@@ -8,7 +8,7 @@ Start with Workshop Health for credentials, packages, and endpoint availability.
 
 The RAG notebook imports Module 2’s splitter, embeddings, reranker, model, retriever tool, and prompt. Its KB-only evaluation graph is separate from the four-tool app. MCP and Skills are optional for evaluation. An ellipsis-related exception generally means an unfinished blank; provider errors require separate diagnosis. Restart the kernel after editing imported Python files.
 
-The report agent also needs Tavily. An agent failure or empty answer has a separate status and is skipped by the judge. It must not be treated as a low-quality answer.
+The report agent needs Tavily only with `WORKSHOP_SEARCH=tavily`; by default (local-first fork) it searches the IT knowledge base and uses `report_agent_local_test_cases.json`. An agent failure or empty answer has a separate status and is skipped by the judge. It must not be treated as a low-quality answer.
 
 ## Judge and RAGAS
 

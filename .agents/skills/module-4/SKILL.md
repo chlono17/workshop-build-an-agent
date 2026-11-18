@@ -24,6 +24,14 @@ synthetic data → verifiable rewards → GRPO reinforcement learning → run th
   DGX Spark (GB10) requires sufficient free memory and a validated training stack — recommend A100/H100 for
   the GRPO step. Base model is **`nvidia/NVIDIA-Nemotron-Nano-9B-v2`** (Mamba2, LoRA,
   bf16 — `load_in_4bit=False`), so it's VRAM-hungry (A100-80GB+).
+- **Local-first fork on a DGX Spark:** the chat model (Qwen3.8 27B, NVIDIA Sync Model Launcher)
+  keeps ~114 GB of the 128 GB unified memory. Training (~45 GB) only fits after the learner
+  stops it (NVIDIA Sync -> Models -> Stop) and must start it again afterwards (-> Start; wait for
+  Workshop Health endpoint checks). `02_grpo_training.ipynb`'s first code cell
+  (`workshop_support.spark.check_memory_for`) checks this read-only. Do SDG and the starter agent
+  *before* stopping it. The combined agent in `03_run_agent.ipynb` Step 6–7 needs the 27B and the
+  9B together, which does not fit on one Spark (documented limitation). Never stop/start models
+  for the learner.
 - **Multi-stage pipeline with an out-of-notebook dependency:** the NeMo Gym **reward
   server must be running** (`uvicorn app:app --port 8001`) before GRPO training works.
 - **One shortcut exists** (offer it when a learner is blocked on time/quota): a provided
@@ -137,7 +145,8 @@ rollouts) locally → **A100/H100 80 GB recommended**; Check available memory an
 works without a capable GPU:** SDG (hosted NeMo Data Designer, no GPU) and *reading* the
 training concepts — but the `trainer.train()` run itself needs the GPU. If a learner asks
 "can my machine run this?": SDG + concepts yes; the training run needs an NVIDIA GPU
-(ideally A100/H100-class). **Needs:** `NVIDIA_API_KEY` (hosted SDG and starter agent); the reward
+(ideally A100/H100-class). **Needs:** `NVIDIA_API_KEY` (hosted SDG and starter agent) in hosted mode; in the local-first
+fork SDG and the starter agent use the local gateway (Spark model key only); the reward
 server running locally.
 
 ## Handling diagram / NVIDIA-tech / quiz / hardware questions

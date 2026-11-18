@@ -7,8 +7,10 @@
 ## Run it in 3 steps
 
 ```bash
-# 1. Set your NVIDIA key (get one free at build.nvidia.com)
-export NVIDIA_API_KEY=nvapi-xxxxxxxx
+# 1. Local-first fork: nothing to set. variables.env points every model call at the
+#    local gateway on the DGX Spark. (Hosted mode only: remove NVIDIA_BASE_URL from
+#    variables.env and set your NVIDIA key, free at build.nvidia.com.)
+# export NVIDIA_API_KEY=nvapi-xxxxxxxx
 
 # 2. Install what the lab needs
 pip install -r ../../requirements.txt

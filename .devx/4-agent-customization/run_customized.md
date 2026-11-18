@@ -14,7 +14,7 @@ The saved model is a candidate **specialized agent**. Use its held-out results t
 But how do we actually *use* the trained model? The training notebook saved a merged model checkpoint. The trained model does one job well: it turns a LangGraph CLI request into the exact command. On its own it cannot list files or read a README. So instead of replacing the general bash agent, we give the agent the trained model **as a tool**:
 1. **Load the trained model** locally
 2. **Use the right prompt format** — the model was trained with a specific JSON system prompt, and the tool must use exactly that prompt
-3. **Wire both tools into the agent** — the hosted model keeps planning and running bash commands, calls your model for LangGraph requests, and every command still waits for your approval
+3. **Wire both tools into the agent** — the general model (the local 27B in this fork) keeps planning and running bash commands, calls your model for LangGraph requests, and every command still waits for your approval
 
 <!-- fold:break -->
 
@@ -24,7 +24,7 @@ During GRPO training, the model learned to map natural language requests to stru
 
 ![Inference Pipeline](img/inference_pipeline_dark.svg)
 
-The key difference from the base agent in `bash_agent.ipynb`: alongside the hosted model, the trained model runs **locally** with HuggingFace Transformers, behind a `langgraph_cli` tool. The `HuggingFaceLLM` class handles model loading, tokenization, and parsing the structured JSON output into a command. A small specialist model behind a tool adds depth without losing the general agent's breadth.
+The key difference from the base agent in `bash_agent.ipynb`: alongside the general model, the trained model runs **locally** with HuggingFace Transformers, behind a `langgraph_cli` tool. The `HuggingFaceLLM` class handles model loading, tokenization, and parsing the structured JSON output into a command. A small specialist model behind a tool adds depth without losing the general agent's breadth.
 
 <!-- fold:break -->
 
@@ -92,6 +92,8 @@ tools=[ExecOnConfirm(bash).exec_bash_command, langgraph_cli],
 
 After completing the exercises, run Step 7 in the notebook, or start the same agent in a <button onclick="openNewTerminal();"><i class="fas fa-terminal"></i> terminal</button>. Shut down the training notebook's kernel first to free GPU memory.
 
+> **Known limitation on a single DGX Spark (local-first fork).** The interactive agent needs two models at once: the planner (the local 27B, about 114 GB while it runs) and your fine-tuned 9B (about 20 GB). Together they exceed the Spark's 128 GB of unified memory, so this step cannot run end to end on one Spark as written. You can do Steps 4–5 (the fine-tuned model on its own, with the 27B stopped if memory is short) and complete the Step 6 exercise. To run the combined agent you need a second machine for one of the models, or the hosted planner (remove `NVIDIA_BASE_URL` from `variables.env` and add an NVIDIA key; this uses the cloud). Restarting the 27B with a smaller memory reservation is *not verified*. Afterwards, start the 27B again in **NVIDIA Sync → Models**.
+
 Make sure you're in the `code/4-agent-customization` directory:
 
 ```bash
@@ -110,7 +112,7 @@ Add `--cli-only` to talk to the trained model alone: each request becomes one La
 
 ### Test the Customized Agent
 
-Start with a general request such as *“List the files in this directory”*: the hosted model answers it with bash. Then try LangGraph requests such as *“Create a react-agent project in ./myapp”*, *“Start the dev server on port 8080”*, and *“Build an image tagged myapp:v2”*: the agent calls `langgraph_cli` and shows you the trained model's command before running it. Check each command before approving.
+Start with a general request such as *“List the files in this directory”*: the general model answers it with bash. Then try LangGraph requests such as *“Create a react-agent project in ./myapp”*, *“Start the dev server on port 8080”*, and *“Build an image tagged myapp:v2”*: the agent calls `langgraph_cli` and shows you the trained model's command before running it. Check each command before approving.
 
 <!-- fold:break -->
 
@@ -118,7 +120,7 @@ Start with a general request such as *“List the files in this directory”*: t
 
 Open `outputs/grpo_langgraph_cli/held_out_comparison.json`, written by the training notebook. It compares the **same local 9B model before and after training** on untouched validation rows, using the same JSON prompt, greedy decoding, token budget and verifier. Compare exact-match rate and inspect the saved failures; an improvement is a result to measure, not a promise.
 
-The hosted starter agent uses a different model and tool setup, so its chat demonstrations are not a fair training baseline. This carries Module 3's evaluation approach into customization. The verifier checks labels, not whether running a command is safe.
+The starter agent uses a different model and tool setup, so its chat demonstrations are not a fair training baseline. This carries Module 3's evaluation approach into customization. The verifier checks labels, not whether running a command is safe.
 
 <!-- fold:break -->
 
