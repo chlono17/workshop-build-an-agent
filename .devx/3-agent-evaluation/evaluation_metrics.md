@@ -370,6 +370,6 @@ Ready to implement these evaluation metrics? In the next lesson, we'll get hands
 
 Over the next sections, you'll learn how to:
 - Use SDG to generate synthetic datasets for evaluation
-- Use NVIDIA Nemotron models as evaluation judges
+- Use a strong model as the evaluation judge (NVIDIA Nemotron upstream; the local Qwen3.8 27B here)
 - Design effective evaluation prompts
 - Implement custom evaluation criteria

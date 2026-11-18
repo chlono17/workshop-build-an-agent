@@ -70,7 +70,7 @@ Flow (teaching narrative in `.devx/3-agent-evaluation/`, code in `code/3-agent-e
 
 | Step | Teaching page | Focus | Code |
 |---|---|---|---|
-| Setup | `secrets.md` | NVIDIA key (judge + agents); Tavily (report agent); LangSmith optional | `secrets.env` |
+| Setup | `secrets.md` | Local-first fork: Spark model key only (NVIDIA key in hosted mode; Tavily only with `WORKSHOP_SEARCH=tavily`); LangSmith optional | `secrets.env` |
 | Concepts | `intro_evaluation.md` | why eval; process vs outcome; the judge problem | — |
 | Metrics | `evaluation_metrics.md` | RAGAS 2×2 + metric definitions; task-agent metrics | — |
 | Datasets | `evaluation_data.md` | dataset shapes; real/synthetic/hybrid; SDG | `generate_*_eval_dataset.ipynb` (run as-is) |
@@ -81,7 +81,9 @@ Flow (teaching narrative in `.devx/3-agent-evaluation/`, code in `code/3-agent-e
 (Module 1)**. Shared code: `evaluation_framework.py` (judge LLM, embeddings, eval
 prompts, metric functions). **Judge model:** the configured shared `judge` role at
 **temperature 0** (reduces sampling variation; does not guarantee repeatability). Datasets in `data/evaluation/`
-(`rag_agent_test_cases.json` = 12 cases; `report_agent_test_cases.json` = 6 topics),
+(`rag_agent_test_cases.json` = 12 cases; `report_agent_test_cases.json` = 6 web topics;
+`report_agent_local_test_cases.json` = 6 IT knowledge-base topics, picked automatically when
+`WORKSHOP_SEARCH=local`, this fork's default),
 or reviewed learner-generated `synthetic_*` subsets. Unreviewed candidates are not selected automatically.
 
 ## Key concepts (quick recall)
@@ -127,7 +129,10 @@ Full reference + the workshop's framing in `references/concepts.md`. Essentials:
 - **`references/quizzes.md`** — deeper "Check Your Understanding" feedback.
 
 ## Environment & hardware
-**No GPU required.** Everything runs on **hosted** inference — the agents-under-test, the
+**Local-first fork:** the agents, the judge (Qwen3.8 27B), embeddings, RAGAS and Data Designer
+(`DataDesigner(model_providers=data_designer_providers())`) all call the local gateway on the
+DGX Spark, and the report agent searches the IT knowledge base; no cloud key is needed.
+Upstream (hosted mode): **No GPU required.** Everything runs on **hosted** inference — the agents-under-test, the
 Nemotron judge (temp 0), the embeddings, RAGAS, and the NeMo Data Designer SDG all call
 hosted NVIDIA models. **CPU-only**, no Docker. Note: some steps are **slow** (the report
 eval can take ~30 min) — that's network/throughput-bound (many model + judge calls), **not**

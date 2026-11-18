@@ -1,4 +1,4 @@
-<div class="dx-hero" data-eyebrow="MODULE 03 / 04 - HANDS ON" data-title="Running Evaluations" data-meta="TIME::50 min|NOTEBOOKS::2|MODEL::Nemotron (LLM-judge)"></div>
+<div class="dx-hero" data-eyebrow="MODULE 03 / 04 - HANDS ON" data-title="Running Evaluations" data-meta="TIME::50 min|NOTEBOOKS::2|MODEL::Qwen3.8 27B (LLM-judge, local)"></div>
 
 <img src="_static/robots/blueprint.png" alt="Running Evaluations" style="float:right;max-width:300px;margin:25px;" />
 
@@ -12,7 +12,7 @@ Before starting, ensure you have:
 
 **Evaluation datasets ready** - You should have created or reviewed test datasets from the previous lesson ([Creating Evaluation Datasets](evaluation_data.md)). You can use:
 - Your reviewed generated cases from the `generate_rag_eval_dataset.ipynb` and `generate_report_eval_dataset.ipynb` notebooks
-- The pre-made datasets: `rag_agent_test_cases.json` and `report_agent_test_cases.json`
+- The pre-made datasets: `rag_agent_test_cases.json` and `report_agent_test_cases.json` (web topics), plus `report_agent_local_test_cases.json` (IT knowledge-base topics; used automatically in this local-first fork, where the report agent searches the knowledge base instead of the web)
 
 **Agents built** - Your RAG agent from Module 2 and Report Generation agent from Module 1 should be built and functional. 
 - If you have not yet completed those modules, paste the contents of the ``code/2-agentic-rag/rag_agent.answers.py`` answer key into ``code/2-agentic-rag/rag_agent.py``.
@@ -289,7 +289,7 @@ Open the <button onclick="openOrCreateFileInJupyterLab('code/3-agent-evaluation/
 
 ### Load Test Cases
 
-Load your report generation test dataset - either one you created or the pre-made dataset at `data/evaluation/report_agent_test_cases.json`.
+Load your report generation test dataset - either one you created or the pre-made dataset. With `WORKSHOP_SEARCH=local` (this fork's default) the notebook picks `data/evaluation/report_agent_local_test_cases.json`: six report topics the IT knowledge base can answer, because web topics such as renewable-energy trends cannot be researched offline. With `WORKSHOP_SEARCH=tavily` it uses the web topics in `data/evaluation/report_agent_test_cases.json`.
 
 Run <button onclick="goToLineAndSelect('code/3-agent-evaluation/evaluate_report_agent.ipynb', 'report_test_cases =');"><i class="fas fa-code"></i> Load Test Cases </button> to load and view the test cases.
 

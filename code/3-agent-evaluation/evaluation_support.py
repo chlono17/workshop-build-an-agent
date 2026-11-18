@@ -378,14 +378,32 @@ def review_sample(rows, compare=None, size=3):
     return picked
 
 
+def _search_backend():
+    """WORKSHOP_SEARCH: "local" (bundled IT documents, the fork's default) or "tavily"."""
+    import os
+    return os.environ.get("WORKSHOP_SEARCH", "local").strip().lower()
+
+
 def select_dataset(data_dir, name):
-    """Use synthetic cases only after their explicit review status is recorded."""
+    """Use synthetic cases only after their explicit review status is recorded.
+
+    Local-first fork: with WORKSHOP_SEARCH=local, a dataset that has a local variant
+    ({name}_local_test_cases.json, e.g. the report agent's IT knowledge-base topics) uses
+    it, because web topics cannot be researched offline. Synthetic cases are used then
+    only if they were generated for local search.
+    """
     data_dir = Path(data_dir)
+    local_cases = data_dir / f"{name}_local_test_cases.json"
+    local = _search_backend() == "local" and local_cases.exists()
     synthetic = data_dir / f"synthetic_{name}_test_cases.json"
     if synthetic.exists():
         cases = json.loads(synthetic.read_text())
-        if cases and all(case.get("review_status") == "reviewed" for case in cases):
+        if local and any(case.get("search_backend", "tavily") != "local" for case in cases):
+            print(f"{synthetic.name} was generated for web search; using {local_cases.name} "
+                  "(WORKSHOP_SEARCH=local). Regenerate it in local mode to use synthetic cases.")
+        elif cases and all(case.get("review_status") == "reviewed" for case in cases):
             return synthetic
-        print(f"{synthetic.name} still needs review; using the provided dataset. "
-              "After reviewing, set reviewed_indices in its generator and rerun the save cell.")
-    return data_dir / f"{name}_test_cases.json"
+        else:
+            print(f"{synthetic.name} still needs review; using the provided dataset. "
+                  "After reviewing, set reviewed_indices in its generator and rerun the save cell.")
+    return local_cases if local else data_dir / f"{name}_test_cases.json"

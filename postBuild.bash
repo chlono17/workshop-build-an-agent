@@ -184,3 +184,12 @@ if [ -f "$TRL_IMPORT_UTILS" ]; then
 else
     echo "WARNING: trl/import_utils.py not found; skipping trl availability-flag patches"
 fi
+
+# Local-first fork: NeMo Data Designer (Modules 3 and 4) loads tiktoken's cl100k_base
+# tokenizer when it is imported, and tiktoken downloads it from the internet the first
+# time. Fetch it now, while the build has network access, into the directory that
+# TIKTOKEN_CACHE_DIR (variables.env) points to, so the notebooks also work offline.
+# Non-fatal: without the cache, the first import downloads it as before.
+sudo mkdir -p /opt/tiktoken-cache && sudo chown workbench:workbench /opt/tiktoken-cache
+TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache python3.12 -c "import tiktoken; tiktoken.get_encoding('cl100k_base')" \
+  || echo "WARNING: could not pre-download the tiktoken cl100k_base tokenizer; Data Designer will fetch it on first use."
