@@ -66,18 +66,39 @@ def test_local_search_handles_empty_and_unmatched_queries():
     assert local_search.search("zzzqqq", max_results=3)["results"] == []
 
 
-def test_data_designer_provider_follows_the_workshop_endpoint(ws, monkeypatch):
-    pytest.importorskip("data_designer.config.models")
-    monkeypatch.setenv("NVIDIA_BASE_URL", "http://local-gateway:8000/v1")
-    [provider] = ws.data_designer_providers()
-    # Same name as Data Designer's built-in provider, so ModelConfig(provider="nvidia") keeps working.
-    assert provider.name == "nvidia"
-    assert provider.endpoint == "http://local-gateway:8000/v1"
-    assert provider.api_key == "NVIDIA_API_KEY"  # an environment variable name, resolved at call time
+def test_data_designer_provider_follows_the_workshop_endpoint():
+    # Run in a clean interpreter from the repo root: when pytest runs from this package's
+    # directory, workshop_support/secrets.py shadows the stdlib `secrets` that numpy needs.
     import os
-    assert os.environ["NVIDIA_API_KEY"] == ws.LOCAL_KEY_PLACEHOLDER
-    monkeypatch.delenv("NVIDIA_BASE_URL")
-    assert ws.data_designer_providers()[0].endpoint == ws.HOSTED_BASE_URL
+    import subprocess
+    import sys
+    from pathlib import Path
+    root = Path(workshop_support.__file__).resolve().parents[2]
+    probe = """
+import os, sys
+sys.path.insert(0, "code")
+try:
+    import data_designer.config.models  # noqa: F401
+except ImportError:
+    print("SKIP"); raise SystemExit
+import workshop_support as ws
+os.environ["NVIDIA_BASE_URL"] = "http://local-gateway:8000/v1"
+[p] = ws.data_designer_providers()
+print(p.name, p.endpoint, p.api_key, os.environ["NVIDIA_API_KEY"])
+del os.environ["NVIDIA_BASE_URL"]
+print(ws.data_designer_providers()[0].endpoint)
+"""
+    env = {k: v for k, v in os.environ.items() if k not in ("NVIDIA_BASE_URL", "NVIDIA_API_KEY")}
+    out = subprocess.run([sys.executable, "-c", probe], cwd=root, env=env,
+                         capture_output=True, text=True, timeout=120)
+    assert out.returncode == 0, out.stderr[-2000:]
+    if out.stdout.strip() == "SKIP":
+        pytest.skip("data-designer is not installed")
+    local, hosted = out.stdout.strip().splitlines()
+    # Same name as Data Designer's built-in provider, so ModelConfig(provider="nvidia") keeps
+    # working; api_key is an environment variable name, resolved at call time.
+    assert local.split() == ["nvidia", "http://local-gateway:8000/v1", "NVIDIA_API_KEY", "local-spark"]
+    assert hosted == "https://integrate.api.nvidia.com/v1"
 
 
 def test_local_mcp_port_does_not_collide_with_other_module_services(ws):
