@@ -189,7 +189,7 @@ def run_safety_suite(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Screen the supplied mock and policy fixtures.")
-    parser.add_argument("--judge", action="store_true", help="Review every completed answer with hosted Nemotron.")
+    parser.add_argument("--judge", action="store_true", help="Review every completed answer with the judge model (local gateway, or hosted Nemotron).")
     args = parser.parse_args()
 
     def mock_agent(prompt):

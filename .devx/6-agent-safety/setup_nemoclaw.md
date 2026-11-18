@@ -24,7 +24,11 @@ The script handles workshop-environment quirks for you and then runs the officia
 
 ### What you'll be asked
 
-Walk through each prompt as follows. Your NVIDIA key is read from your saved workshop secrets, and the script names the sandbox `my-assistant`, so neither is asked for.
+> **Local-first fork: route the sandbox to the Spark's own model.** When `NVIDIA_BASE_URL` is set (the default in `variables.env`), the script prints the values to use before onboarding starts. At prompt 2 choose **Other OpenAI-compatible endpoint** instead of NVIDIA Endpoints, and enter the **Base URL** the script printed (`http://<Docker host IP>:18765/v1`, NVIDIA Sync's Model Launcher on this Spark; the OpenShell gateway runs as a sibling container on the host's Docker and cannot resolve the Workbench-only name `local-gateway`) and the **Model** `nvidia/Qwen3.8-27B-NVFP4`. The script passes your saved **Spark Model Key** to onboarding as `COMPATIBLE_API_KEY` and lists the Docker host IP in `NEMOCLAW_TRUSTED_PRIVATE_HOSTS`, because onboarding blocks private addresses by default; neither is printed. The Model Launcher must be in **LAN** network mode, as in Module 1.
+>
+> This path is **not yet verified on a live Spark** with the pinned NemoClaw v0.0.55; the custom-endpoint options come from NVIDIA's current NemoClaw documentation. If onboarding rejects the endpoint, run the module in hosted mode instead (follow the prompts below with an NVIDIA API key) and note what failed; nothing else in this lesson depends on which backend you choose.
+
+Walk through each prompt as follows (hosted mode). Your NVIDIA key is read from your saved workshop secrets, and the script names the sandbox `my-assistant`, so neither is asked for.
 
 1. **License notice** — Type `yes` to accept.
 2. **Inference provider** — Press Enter to accept **NVIDIA Endpoints** (option 1).
@@ -53,7 +57,7 @@ The Workbench project container talks to the host's Docker daemon via a mounted 
 2. **Shared runtime paths** — Keeps gateway binaries, driver configuration and state in Workbench's shared volume and maps their paths for the host Docker daemon. A read-only system certificate bundle lets the gateway verify HTTPS inference endpoints. The sandbox base is pinned to a compatible immutable image.
 3. **Stale-container cleanup** — If a previous install attempt failed, the script removes the leftover gateway container before retrying.
 
-The workshop pins NemoClaw **v0.0.55**, OpenShell **0.0.44**, and OpenClaw **2026.5.22**, with the matching immutable sandbox base. This includes upstream fixes for plugin dependency moves (`EXDEV`) and the file-write hook. The hosted-inference sandbox defaults to CPU mode; it does not need GPU passthrough. On a healthy install, rerunning the script checks the versions and restores the tunnel. A Ready sandbox with an older runtime is preserved, and the helper asks you to reset it explicitly; rerunning alone does not upgrade its image. Recovery from an incomplete install can remove the named gateway and rerun onboarding. Use it only for your disposable workshop setup. See `code/6-agent-safety/scripts/install-nemoclaw.sh` for the implementation.
+The workshop pins NemoClaw **v0.0.55**, OpenShell **0.0.44**, and OpenClaw **2026.5.22**, with the matching immutable sandbox base. This includes upstream fixes for plugin dependency moves (`EXDEV`) and the file-write hook. The sandbox defaults to CPU mode; it does not need GPU passthrough, because inference runs outside it (hosted, or the Spark's own model server in the local-first fork). On a healthy install, rerunning the script checks the versions and restores the tunnel. A Ready sandbox with an older runtime is preserved, and the helper asks you to reset it explicitly; rerunning alone does not upgrade its image. Recovery from an incomplete install can remove the named gateway and rerun onboarding. Use it only for your disposable workshop setup. See `code/6-agent-safety/scripts/install-nemoclaw.sh` for the implementation.
 
 This pinned gateway disables operator authentication and TLS. The helper avoids a public-interface listener, but other host users and bridge-connected containers may still reach port 8080. Keep this workshop on a trusted host; sandbox policy does not protect the operator control plane.
 
@@ -232,6 +236,8 @@ Next, compare the sandbox's inference route with the provider's real address:
 curl -sS -o /dev/null -w "inference.local: %{http_code}\n" https://inference.local/v1/models
 curl -sS -o /dev/null -w "direct: %{http_code}\n" https://integrate.api.nvidia.com/v1/models
 ```
+
+In the local-first fork the provider's real address is the Spark's model server, so also try the Base URL you entered during onboarding (for example `curl -sS -o /dev/null -w "direct: %{http_code}\n" http://<Docker host IP>:18765/v1/models`). Expect the same denial.
 
 The first returns `200`, even though the sandbox holds no API key: OpenShell routes the request and adds the credentials outside the agent. The second is denied (`CONNECT tunnel failed, response 403`) because the agent cannot reach the provider directly. That denial is intended. Don't add a network rule for it or approve its pending rule in `openshell term`, because direct access would let the agent bypass `inference.local`.
 

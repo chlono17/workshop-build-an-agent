@@ -52,8 +52,8 @@ if [[ "${NEMOCLAW_INSTALL_REF:-$NEMOCLAW_TAG}" == "v0.0.55" && -z "${NEMOCLAW_SA
     export NEMOCLAW_SANDBOX_BASE_IMAGE_REF="ghcr.io/nvidia/nemoclaw/sandbox-base@sha256:10433a8cd2f2b809dd0fdf983514679e04c0f8aa1ff5bbff675029046033b108"
 fi
 
-# This module uses hosted inference; it does not need a GPU in the sandbox.
-# An explicit override remains available for learners using a local GPU route.
+# The sandbox needs no GPU: inference runs outside it (hosted, or the Spark's own model
+# server in the local-first fork). An explicit override remains available.
 export NEMOCLAW_SANDBOX_GPU="${NEMOCLAW_SANDBOX_GPU:-0}"
 
 log() { echo "$@" | tee -a "$LOG"; }
@@ -158,6 +158,38 @@ Path(sys.argv[1]).write_text(json.dumps(settings))
 PY
     if [[ $? -ne 0 ]]; then rm -rf -- "$DOCKER_ADAPTER_DIR"; exit 1; fi
     export PATH="$DOCKER_ADAPTER_DIR:$PATH"
+fi
+
+# Local-first fork: with NVIDIA_BASE_URL pointing at the local gateway (variables.env),
+# the sandbox's inference should reach the Spark's own model, not NVIDIA's hosted API.
+# The OpenShell gateway runs as a sibling container on the host's Docker, so it cannot
+# resolve the Workbench-only name local-gateway; it reaches NVIDIA Sync's Model Launcher
+# through the Docker host IP instead. Onboarding asks for these values interactively
+# (provider "Other OpenAI-compatible endpoint"); the key comes from secrets.env and is
+# never printed. Not verified on a live Spark yet: see setup_nemoclaw.md.
+if [[ -n "${NVIDIA_BASE_URL:-}" && "${NVIDIA_BASE_URL%/}" != "https://integrate.api.nvidia.com/v1" ]]; then
+    SPARK_MODEL_URL="${WORKSHOP_SPARK_MODEL_URL:-http://${DOCKER_HOST_IP}:18765/v1}"
+    SECRETS_FILE="${WORKSHOP_SECRETS_FILE:-$(cd -- "$SCRIPT_DIR/../../.." && pwd)/secrets.env}"
+    if [[ -z "${COMPATIBLE_API_KEY:-}" && -r "$SECRETS_FILE" ]]; then
+        COMPATIBLE_API_KEY=$(python3 - "$SECRETS_FILE" <<'PY'
+import sys
+from dotenv import dotenv_values
+print(dotenv_values(sys.argv[1]).get("SPARK_LLM_API_KEY") or "", end="")
+PY
+)
+        [[ -n "$COMPATIBLE_API_KEY" ]] && export COMPATIBLE_API_KEY
+    fi
+    # The Docker host IP is a private address, which onboarding blocks unless listed.
+    export NEMOCLAW_TRUSTED_PRIVATE_HOSTS="${NEMOCLAW_TRUSTED_PRIVATE_HOSTS:-$DOCKER_HOST_IP}"
+    log "Local-first mode (NVIDIA_BASE_URL is set). At the inference prompts choose:"
+    log "  Provider: Other OpenAI-compatible endpoint"
+    log "  Base URL: $SPARK_MODEL_URL"
+    log "  Model:    ${WORKSHOP_CHAT_MODEL:-nvidia/Qwen3.8-27B-NVFP4}"
+    if [[ -n "${COMPATIBLE_API_KEY:-}" ]]; then
+        log "  API key:  taken from SPARK_LLM_API_KEY in secrets.env (COMPATIBLE_API_KEY)"
+    else
+        log "  API key:  SPARK_LLM_API_KEY was not found; save the Spark Model Key in Secrets Manager first."
+    fi
 fi
 
 # Full install path

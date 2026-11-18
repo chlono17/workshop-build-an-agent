@@ -35,6 +35,9 @@ process:
   run_as_group: sandbox
 
 network_policies:
+  # Teaching fixture (validated by agent_safety.py, never applied to a sandbox). With a
+  # gateway-managed route the agent reaches its model only through inference.local, whether
+  # that route goes to NVIDIA's hosted API or, in the local-first fork, the Spark's own model.
   llm_api:
     name: llm-api-inference
     endpoints:

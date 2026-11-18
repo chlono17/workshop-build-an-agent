@@ -1,4 +1,4 @@
-<div class="dx-hero" data-eyebrow="MODULE 06 / AGENT SAFETY" data-title="Agent Safety with NemoClaw" data-meta="DURATION::2-2.5 hrs|MODEL::Hosted Nemotron|GPU::Optional local inference"></div>
+<div class="dx-hero" data-eyebrow="MODULE 06 / AGENT SAFETY" data-title="Agent Safety with NemoClaw" data-meta="DURATION::2-2.5 hrs|MODEL::Qwen3.8 27B (local) or hosted Nemotron|GPU::DGX Spark, local endpoint"></div>
 
 Your agent runs 24/7, evolves its own behavior, and processes sensitive data. How do you make it safer when you're not watching?
 
@@ -7,7 +7,7 @@ In this module, you'll use **NVIDIA NemoClaw** to add runtime boundaries to an O
 <div class="dx-bento dx-reveal">
   <div class="dx-cell is-wide is-tall"><h4>YOU WILL BUILD</h4><span class="dx-big">A hardened autonomous agent</span>Runtime boundaries, operator-controlled inference, and a red-team evaluation suite.</div>
   <div class="dx-cell"><h4>DURATION</h4><span class="dx-big">2-2.5 h</span>self-paced</div>
-  <div class="dx-cell"><h4>BUILT WITH</h4>OpenClaw - OpenShell - Nemotron - Privacy Router</div>
+  <div class="dx-cell"><h4>BUILT WITH</h4>OpenClaw - OpenShell - a local model - Privacy Router</div>
   <div class="dx-cell"><h4>YOU'LL TAKE HOME</h4>Kernel-level enforcement, operator-controlled routing, and continuous safety evaluation.</div>
 </div>
 

@@ -22,7 +22,7 @@ bash code/6-agent-safety/scripts/nemoclaw-health.sh
 
 It reports which layer is down and prints the single command that brings the stack back: <button onclick="openNewTerminal();"><i class="fas fa-terminal"></i> terminal</button> → `bash code/6-agent-safety/scripts/install-nemoclaw.sh`. A healthy installation may only need its tunnel restored. Recovery can recreate gateway state; inspect the installer output and preserve any existing work before a reset. Re-run the health check afterward; you're ready when it prints **READY**.
 
-> **Sandbox unavailable?** You can still build Exercise 5's classifier and run the [safety suite](evaluating_safety) against its offline mock. Hosted judge reviews need API access; the routing demonstration needs the live sandbox.
+> **Sandbox unavailable?** You can still build Exercise 5's classifier and run the [safety suite](evaluating_safety) against its offline mock. Judge reviews need the judge model (the local gateway in this fork, or hosted API access); the routing demonstration needs the live sandbox.
 
 <!-- fold:break -->
 
@@ -396,6 +396,8 @@ curl -sS --max-time 60 -X POST https://inference.local/v1/chat/completions \
   | head -20
 ```
 
+Local-first fork: the gateway applies the operator's model, so the hosted model name in the request does not matter; you can also send `nvidia/Qwen3.8-27B-NVFP4`.
+
 Expected: a completion response. This request sends no auth header; the gateway supplies the configured upstream provider credential. An error response or timeout does not prove inference succeeded.
 
 > The operator's provider configuration determines the upstream destination and credentials. The gateway applies that configuration when forwarding the request.
@@ -463,7 +465,7 @@ From the host:
 openshell inference get
 ```
 
-Expected: one provider + one model (e.g. `nvidia-prod` / `nvidia/nemotron-3.5-super-vl-120b-a12b`). Every sandbox on this gateway sees the same `inference.local` backend.
+Expected: one provider + one model (e.g. `nvidia-prod` / `nvidia/nemotron-3.5-super-vl-120b-a12b`; in the local-first fork, the custom provider onboarding created and `nvidia/Qwen3.8-27B-NVFP4`). Every sandbox on this gateway sees the same `inference.local` backend.
 
 </details>
 
@@ -472,7 +474,9 @@ Expected: one provider + one model (e.g. `nvidia-prod` / `nvidia/nemotron-3.5-su
 
 The Privacy Router's headline property is that **operators choose where inference runs and the agent never sees the change**. We'll demonstrate that by switching the active model on the live gateway and watching the next request from the sandbox land on the new target.
 
-Use the workshop's tested `fast_chat` model role. This remains hosted inference; the change demonstrates routing, not local privacy. Use a dedicated workshop gateway because this route is shared:
+Use the workshop's tested `fast_chat` model role. This remains hosted inference; the change demonstrates routing, not local privacy.
+
+> **Local-first fork limitation:** the Spark serves one chat model, and `fast_chat` is the same Qwen3.8 27B as `chat`, so switching between them changes nothing you can observe. With a local route, run `openshell inference get`, note the provider name, and use it in place of `nvidia-prod` below; the bogus-model check still shows that the gateway, not the agent, chooses the model. To see a visible switch between two models you need a second model server (for example the hosted API in hosted mode). *Not yet verified on a live Spark.* Use a dedicated workshop gateway because this route is shared:
 
 ```bash
 WORKSHOP_FAST_MODEL=$(PYTHONPATH=code python3 -c 'from workshop_support import get_model; print(get_model("fast_chat"))')
