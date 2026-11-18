@@ -1,4 +1,4 @@
-<div class="dx-hero" data-eyebrow="MODULE 07 / AGENT HARNESSES" data-title="Same model. Different harness." data-sub="Name the layer wrapped around the LLM, take it apart, and see how it shapes agent behavior alongside the model." data-meta="DURATION::2-3 hrs|EXERCISES::5|MODEL::Nemotron|GPU::local tool backend"></div>
+<div class="dx-hero" data-eyebrow="MODULE 07 / AGENT HARNESSES" data-title="Same model. Different harness." data-sub="Name the layer wrapped around the LLM, take it apart, and see how it shapes agent behavior alongside the model." data-meta="DURATION::2-3 hrs|EXERCISES::5|MODEL::Qwen3.8 27B (local) or Nemotron|GPU::DGX Spark, local endpoint"></div>
 
 <img src="_static/robots/wings.png" alt="Workshop Robot Character" style="float:right;max-width:240px;margin:20px;" />
 
